@@ -22,9 +22,9 @@ def combinations(a):
     return ( set(compress(a,mask)) for mask in product(*[[0,1]]*len(a)) )
 
 
-# for L in range(0, len(a)+1):
-#     for subset in itertools.combinations(a, L):
-#         print(subset)
+for L in range(0, len(a)+1):
+    for subset in itertools.combinations(a, L):
+        print(subset)
 
 
 # all_combinations = []

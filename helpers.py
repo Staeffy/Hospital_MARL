@@ -1,14 +1,29 @@
+
+Patient_info =	{
+    "A": ["tx", "ty","tz"],
+    "B": ["ty", "tx", "tz"],
+    "C": ["tx", "tx", "ty"],
+    "D": ["ty", "ty","ty"]
+} 
+
+treatment_list = np.matrix(Patient_info)
+
+
+
+
+
+
 class Environment:
   def __init__(self):
-    self.board = np.zeros((LENGTH, LENGTH))
+    self.board = treatment_list
     self.x = -1 # represents an x on the board, player 1
     self.o = 1 # represents an o on the board, player 2
     self.winner = None
     self.ended = False
-    self.num_states = 3**(LENGTH*LENGTH)
+    self.num_states = 3**(3*3)
 
-  def is_empty(self, i, j):
-    return self.board[i,j] == 0
+  def not_treated(self, i, j):
+    return self.board[i,j] != 'x' or 'o'
 
   def reward(self, sym):
     # no reward until game is over

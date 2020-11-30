@@ -3,27 +3,25 @@ import numpy as np
 import matplotlib.pyplot as plt
 from helpers import random_action, max_dict
 
-#Patient = ["ANNA", "BELA", "FARIN", "ROD"]
+Patients = ["ANNA", "BELA", "FARIN", "ROD"]
 rewards = [4, 2, 1, 0]
 used_patients = []
-Patient_info =	{
-    "A": ["tx", "ty","tz"],
-    "B": ["ty", "tx", "tz"],
-    "C": ["tx", "tx", "ty"],
-    "D": ["ty", "ty","ty"]
-} 
+# Patient_info =	{
+#     "A": ["tx", "ty","tz"],
+#     "B": ["ty", "tx", "tz"],
+#     "C": ["tx", "tx", "ty"],
+#     "D": ["ty", "ty","ty"]
+# } 
 
-rewards={
-    'tx':3,
-    'ty':2,
-    'tz':3
-}
-
-
+# rewards={
+#     'tx':3,
+#     'ty':2,
+#     'tz':3
+# }
 
 SMALL_ENOUGH = 1e-3
 GAMMA = 0.9
-Patients=list(Patient_info.keys())
+#Patients=list(Patient_info.keys())
 
 
 def available_actions_choose_patient():
@@ -38,6 +36,11 @@ def available_actions_treatments(Patient_info,patient):
     #print("available actions", available_actions)
     return available_actions
 
+def treat_patient(patient):
+
+    index = Patients.index(patient)
+    del Patients[index]
+    print('patient {} was treated'.format(patient))
 
 def take_action(patient):
     
@@ -71,8 +74,6 @@ def determine_winner(player, rewards):
 
 def terminal_state():
     return any([False for patient in Patients if patient not in used_patients])
-
-
 
 
 
