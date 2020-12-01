@@ -143,10 +143,7 @@ if __name__ == '__main__':
     states = all_possible_states(Patients_orig)
     for s in states:
         state=list(s)
-        #print("list state",state)
-        Q[s] = {}
-        #print("available in Q-table", Q)
-        
+        Q[s] = {}        
         possible_actions = available_actions_choose_patient(state) 
         for a in possible_actions:
             #print("for state {} the available actions are {}".format(state,a))
