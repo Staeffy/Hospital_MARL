@@ -4,9 +4,14 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd
 
-def get_data():
-    df = pd.read_csv("logs.csv",header=None) 
-    df.columns = ["Round", "Doc", "Iteration", "Patient","Reward","Q_diff","Random action"]
+def get_data(name):
+    df = pd.read_csv("{}.csv".format(name),header=None) 
+
+    if name=='training':
+        df.columns = ["Round", "Doc", "Iteration", "Patient","Reward","Q_diff","Random action"]
+    
+    if name=='real data':
+        df.columns = ["Round", "Doc", "Reward"]
     #df.set_index('Round')
     return df
 
@@ -17,7 +22,8 @@ def get_total_doc_rewards(data):
 def plot_reward_difference(data):
     df = data.groupby(['Round', 'Doc']).sum()['Reward']
     df=df.unstack()
-    #df=abs(df[0]-df[1])
+    df=abs(df[0]-df[1])
+    print(df)
     df.plot() 
     plt.show() 
 
@@ -45,7 +51,8 @@ def plot_random_ratio(data):
 if __name__ == "__main__":
     
 
-    df= get_data()
+    tr= get_data('training')
+    rl=get_data('real game')
     
     #print(df.head())
 
@@ -53,17 +60,25 @@ if __name__ == "__main__":
     #plot_reward_difference(df)
 
     #PLOT Q DIFF
-    plot_Q_diff(df)
+    #plot_Q_diff(tr)
 
+   
+
+    rl.columns = ["Round", "Doc", "Reward"]
+    print(rl)
+
+    r=get_total_doc_rewards(rl)
+    print(r)
+    
     ##COUNT RANDOM ACTIONS 
-    ran_act=df.groupby(['Doc']).sum()['Random action']
-    print(ran_act)
+    #ran_act=df.groupby(['Doc']).sum()['Random action']
+    #print(ran_act)
 
     #plot_Q_diff(df)
 
     ##PATIENT SEQUENCE 
-    patient_seq=df.groupby(['Patient']).sum()['Iteration']
-    print(patient_seq)
+    #patient_seq=df.groupby(['Patient']).sum()['Iteration']
+    #print(patient_seq)
 
 
   

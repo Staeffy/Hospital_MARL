@@ -90,15 +90,16 @@ class Environment:
 
 class Agent:
 
-    def __init__(self,env, eps=0.01, alpha=0.9):
+    def __init__(self,env, eps=0.01, alpha=0.5):
         self.eps = eps # probability of choosing random action instead of greedy
         self.alpha = alpha # learning rate
         self.Q = {}
         #self.state = env.treated_patients
         self.env=env
-        self.gamma=0.99
+        self.gamma=0.9
         self.payoff=[]
         self.biggest_change=0
+        self.policy={}
 
 
     def initialize_Q(self):
@@ -164,9 +165,7 @@ class Agent:
             #print("checking new values for a2,s2",a2, max_q_s2a2 )
             Q[s][a] = Q[s][a] + self.alpha*(r + self.gamma * max_q_s2a2 - Q[s][a])
             self.biggest_change = max(self.biggest_change, np.abs(old_qsa - Q[s][a]))
-            #self.update_counts[s] = update_counts.get(s,0) + 1
-            # we would like to know how often Q(s) has been updated too
-            #update_counts[s] = update_counts.get(s,0) + 1
+            
 
       
             #print("new state",s2)
@@ -176,15 +175,15 @@ class Agent:
     def get_policy(self,Q):
 
         states = Q.keys()
-        print("Available states",states)
-        policy = {}
+        #print("Available states",states)
+        self.policy = {}
         V = {}
         for s in states:
             a, max_q = max_dict(Q[s])
-            policy[s] = a
+            self.policy[s] = a
             V[s] = max_q
-
-        return policy
+        
+        return self.policy
 
     def show_policies(self,policy):
 
@@ -197,6 +196,14 @@ class Agent:
                 print("")
 
 
+    def use_policy(self,state):
+        
+        a = self.policy[state]
+        new_state=self.env.treat_patient(a,state)
+        r=self.env.reward(a)
+        #print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
+
+        return r,new_state
 
 
 if __name__ == '__main__':
@@ -253,7 +260,8 @@ if __name__ == '__main__':
             state1,a,re,ran =current_player.choose_action(state1,t)
             bc=current_player.biggest_change
             it+=1
-            store_data(r,current_player_idx,it,a,re,bc,ran )
+            data=[r,current_player_idx,it,a,re,bc,ran]
+            store_data(data,'training')
             #print(it)
             #next player 
             
@@ -262,16 +270,45 @@ if __name__ == '__main__':
         
         #deltas.append(biggest_change1)
 
-   
+    
     #print(Doc1.Q)
     Policy_doc1=Doc1.get_policy(Doc1.Q)
     Policy_doc2=Doc2.get_policy(Doc2.Q)
 
-    #Policy_doc2=Doc2.get_policy()
 
-    show_policies(Policy_doc1)
-    show_policies(Policy_doc2)
+    # show_policies(Policy_doc1)
+    # show_policies(Policy_doc2)
 
+    #PLAY WITH LEARNT POLICY 
+
+    for r in range(20):
+       
+       # print("round",t)
+
+        state1=()
+        hosp.patient_list=["ANNA", "BELA", "FARIN","ROD"]
+
+        #randomly decide which doc starts moving 
+        current_player_idx = random.choice([0,1])
+    
+        Doc1.biggest_change=0
+        Doc2.biggest_change=0
+        while hosp.game_over(state1):
+            #it=0
+            if current_player_idx == 0: 
+                #print("Doc 1 turn")
+                current_player=Doc1
+                #it+=1
+
+            else:
+                current_player=Doc2
+                #print("Doc 2 turn")
+                
+
+            re,state1=current_player.use_policy(state1)
+            data=[r,current_player_idx,re]
+            store_data(data,'real game')  
+            current_player_idx = (current_player_idx + 1)%2
   
 
 

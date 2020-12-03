@@ -26,11 +26,11 @@ def max_dict(d):
   return max_key, max_val
 
 
-def store_data(t,doc,it,pat,r,bc,ran):
+def store_data(data,name):
 
-    row=[t, doc, it, pat, r,bc,ran]
+    row=data
 
-    with open('logs.csv', 'a') as f: 
+    with open('{}.csv'.format(name), 'a') as f: 
         f= csv.writer(f)
         f.writerow(row)
 
