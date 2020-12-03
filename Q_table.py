@@ -97,3 +97,28 @@ _______________
     ('BELA', 'ANNA'): {'FARIN': 0.5}
     
     }
+
+
+
+    _______
+
+    {('FARIN', 'ROD', 'BELA'): {'ANNA': 0},
+     ('ANNA', 'ROD', 'BELA'): {'FARIN': 4.921875},
+      ('FARIN', 'ROD'): {'ANNA': 0, 'BELA': 0},
+       ('BELA', 'ANNA'): {'FARIN': 4.921875, 'ROD': 0},
+        ('ANNA', 'ROD'): {'BELA': 5.4375, 'FARIN': 0},
+         ('BELA', 'FARIN', 'ROD', 'ANNA'): {'nothing': 0},
+          ('FARIN', 'ROD', 'BELA', 'ANNA'): {'nothing': 0},
+           ('BELA', 'FARIN', 'ROD'): {'ANNA': 0}, 
+           ('FARIN', 'BELA', 'ROD', 'ANNA'): {'nothing': 0}, 
+           ('BELA', 'ANNA', 'ROD'): {'FARIN': 0},
+            ('ROD', 'BELA', 'FARIN', 'ANNA'): {'nothing': 0},
+             ('ANNA', 'BELA', 'ROD', 'FARIN'): {'nothing': 0},
+              ('ROD', 'FARIN', 'ANNA'): {'BELA': 0}, 
+              ('BELA', 'FARIN'): {'ANNA': 0, 'ROD': 0},
+               ('ANNA', 'FARIN', 'ROD', 'BELA'): {'nothing': 0},
+                ('ANNA', 'ROD', 'BELA', 'FARIN'): {'nothing': 0}, 
+                ('FARIN', 'BELA', 'ROD'): {'ANNA': 0}, 
+                ('ANNA', 'BELA', 'ROD'): {'FARIN': 4.375},
+                 ('ROD', 'ANNA'): {'BELA': 4.375, 'FARIN': 0},
+                  ('ANNA', 'FARIN', 'BELA', 'ROD'): {'nothing': 0}, ('ANNA', 'FARIN', 'BELA'): {'ROD': 0.9375}, ('BELA', 'ROD', 'ANNA'): {'FARIN': 0}, ('FARIN', 'ANNA', 'BELA'): {'ROD': 0}, ('ROD', 'BELA', 'ANNA', 'FARIN'): {'nothing': 0}, ('ROD', 'FARIN', 'BELA'): {'ANNA': 0}, ('BELA', 'ANNA', 'ROD', 'FARIN'): {'nothing': 0}, ('FARIN', 'ANNA', 'ROD', 'BELA'): {'nothing': 0}, ('ANNA',): {'BELA': 10.309999999999999, 'FARIN': 8.7921484375, 'ROD': 5.7251953125}, ('ROD', 'FARIN'): {'ANNA': 0, 'BELA': 0}, ('ROD', 'BELA'): {'ANNA': 0.5, 'FARIN': 0}, ('BELA', 'ROD', 'FARIN'): {'ANNA': 0}, ('FARIN', 'ANNA', 'BELA', 'ROD'): {'nothing': 0}, ('ROD', 'ANNA', 'FARIN'): {'BELA': 0}, ('ROD', 'ANNA', 'BELA', 'FARIN'): {'nothing': 0}, ('ROD', 'FARIN', 'ANNA', 'BELA'): {'nothing': 0}, ('ROD', 'ANNA', 'BELA'): {'FARIN': 3.75}, ('ANNA', 'ROD', 'FARIN', 'BELA'): {'nothing': 0}, ('FARIN', 'ANNA'): {'BELA': 4.921875, 'ROD': 0}, ('BELA', 'ROD'): {'ANNA': 0, 'FARIN': 0}, ('BELA', 'FARIN', 'ANNA', 'ROD'): {'nothing': 0}, ('BELA', 'ROD', 'FARIN', 'ANNA'): {'nothing': 0}, ('BELA', 'FARIN', 'ANNA'): {'ROD': 0.875}, ('FARIN',): {'ANNA': 4.32421875, 'BELA': 0, 'ROD': 0}, ('BELA',): {'ANNA': 0, 'FARIN': 4.375, 'ROD': 0}, ('ANNA', 'FARIN', 'ROD'): {'BELA': 2.5}, ('FARIN', 'ANNA', 'ROD'): {'BELA': 4.921875}, ('ROD', 'FARIN', 'BELA', 'ANNA'): {'nothing': 0}, ('FARIN', 'BELA'): {'ANNA': 0, 'ROD': 0}, ('ANNA', 'FARIN'): {'BELA': 5.58203125, 'ROD': 0}, ('FARIN', 'BELA', 'ANNA'): {'ROD': 0}, ('ANNA', 'BELA'): {'FARIN': 5.9, 'ROD': 4.3828125}, ('BELA', 'ANNA', 'FARIN'): {'ROD': 0}, ('FARIN', 'ROD', 'ANNA', 'BELA'): {'nothing': 0}, ('ANNA', 'BELA', 'FARIN', 'ROD'): {'nothing': 0}, ('FARIN', 'BELA', 'ANNA', 'ROD'): {'nothing': 0}, ('FARIN', 'ROD', 'ANNA'): {'BELA': 0}, ('BELA', 'ROD', 'ANNA', 'FARIN'): {'nothing': 0}, ('ROD', 'BELA', 'ANNA'): {'FARIN': 0}, ('ANNA', 'BELA', 'FARIN'): {'ROD': 1.0}, ('ROD',): {'ANNA': 3.703125, 'BELA': 0, 'FARIN': 0}, ('BELA', 'ANNA', 'FARIN', 'ROD'): {'nothing': 0}, ('ROD', 'BELA', 'FARIN'): {'ANNA': 0}, (): {'ANNA': 10.279, 'BELA': 6.890625, 'FARIN': 7.7080078125, 'ROD': 0.9375}, ('ANNA', 'ROD', 'FARIN'): {'BELA': 0}, ('ROD', 'ANNA', 'FARIN', 'BELA'): {'nothing': 0}}

@@ -2,32 +2,70 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 import seaborn as sns
+import pandas as pd
 
 def get_data():
+    df = pd.read_csv("logs.csv",header=None) 
+    df.columns = ["Round", "Doc", "Iteration", "Patient","Reward","Q_diff","Random action"]
+    #df.set_index('Round')
+    return df
 
-    base_cond1 = [5,6,7,8]
-    base_cond2= [10,2,7,9]
-    base_cond3 = [4,7,4,1]
-    base_cond4 = [5,6,7,8]
+def get_total_doc_rewards(data):
+    rewards=data.groupby('Doc')['Reward'].sum()
+    return rewards
 
-    return base_cond1, base_cond2, base_cond3
+def plot_reward_difference(data):
+    df = data.groupby(['Round', 'Doc']).sum()['Reward']
+    df=df.unstack()
+    #df=abs(df[0]-df[1])
+    df.plot() 
+    plt.show() 
 
-results= get_data()
-fig= plt.figure()
+def plot_Q_diff(df):
 
-xdata= np.array([0,1,2,3,4,5,6])/5
+    #new=df.drop(columns=['Iteration', 'Patient','Reward',''])
+    #new.columns = ["Round", "Doc","Q_diff"]
+    df = df.groupby(['Round', 'Doc']).sum()['Q_diff']
+    print(df)
+    df=df.unstack()
+    df.plot()
+    plt.show()
 
 
+def plot_multi_data(x,y,line,data):
+    sns.lineplot(x=x, y=y, hue=line,
+                data=data)
+    plt.show()
 
-sns.set_theme(style="darkgrid")
+def plot_random_ratio(data):
+    sns.catplot(x="Random action", kind="count", palette="ch:.25", data=df)
+    plt.show()
 
-# Load an example dataset with long-form data
-fmri = sns.load_dataset("fmri")
-print(fmri)
 
-# Plot the responses for different events and regions
-sns.lineplot(x="timepoint", y="signal",
-             hue="region", style="event",
-             data=fmri)
+if __name__ == "__main__":
+    
 
-plt.show()
+    df= get_data()
+    
+    #print(df.head())
+
+    #PLOT REWARD DIFF
+    #plot_reward_difference(df)
+
+    #PLOT Q DIFF
+    plot_Q_diff(df)
+
+    ##COUNT RANDOM ACTIONS 
+    ran_act=df.groupby(['Doc']).sum()['Random action']
+    print(ran_act)
+
+    #plot_Q_diff(df)
+
+    ##PATIENT SEQUENCE 
+    patient_seq=df.groupby(['Patient']).sum()['Iteration']
+    print(patient_seq)
+
+
+  
+
+

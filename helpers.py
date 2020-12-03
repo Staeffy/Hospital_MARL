@@ -1,4 +1,5 @@
 import collections
+import csv
 
 def show_policies(policy):
 
@@ -23,3 +24,13 @@ def max_dict(d):
       max_val = v
       max_key = k
   return max_key, max_val
+
+
+def store_data(t,doc,it,pat,r,bc,ran):
+
+    row=[t, doc, it, pat, r,bc,ran]
+
+    with open('logs.csv', 'a') as f: 
+        f= csv.writer(f)
+        f.writerow(row)
+

@@ -1,11 +1,14 @@
 import itertools
 import copy
 import numpy as np
-from helpers import max_dict, show_policies
+from helpers import max_dict, show_policies, store_data
 import collections 
 import random
 import matplotlib.pyplot as plt
-
+import pandas as pd
+import seaborn as sns
+import csv
+import os
 class Environment:
 
     def __init__(self, patient_list, reward_list):
@@ -15,10 +18,7 @@ class Environment:
         self.reward_per_patient=reward_list
         #self.winner = None
         self.num_states = len(self.all_possible_states())
-       
-
-            
-            
+          
     def available_actions(self,state):
         
         available_actions = np.setdiff1d(self.patient_list, state)
@@ -38,7 +38,7 @@ class Environment:
             reward = self.reward_per_patient[index]
             return reward
         else: 
-            print("Nice, there are no more patients to treat")
+            #print("Nice, there are no more patients to treat")
             return 10
 
     def treat_patient(self,patient,state):
@@ -59,7 +59,7 @@ class Environment:
             #print("these patients have been treated so far {}".format(current_state))    
             return tuple(current_state)
         else: 
-            print("unable to treat {} ",patient)
+            #print("unable to treat {} ",patient)
             return self.treated_patients
 
     def all_possible_states(self):
@@ -79,27 +79,26 @@ class Environment:
 
     def game_over(self,state):
         # returns false
-        if any([True for patient in self.patient_list if patient not in state]):
-            print("")
-        else:
-            print("game is over")
+        # if any([True for patient in self.patient_list if patient not in state]):
+        #     pass
+        # else:
+        #     pass
 
 
         return any([True for patient in self.patient_list if patient not in state])
   
 
-
-
 class Agent:
 
-    def __init__(self,env, eps=0.1, alpha=0.5):
+    def __init__(self,env, eps=0.01, alpha=0.9):
         self.eps = eps # probability of choosing random action instead of greedy
         self.alpha = alpha # learning rate
         self.Q = {}
         #self.state = env.treated_patients
         self.env=env
-        self.gamma=0.9
-        self.payoff=0
+        self.gamma=0.99
+        self.payoff=[]
+        self.biggest_change=0
 
 
     def initialize_Q(self):
@@ -118,39 +117,35 @@ class Agent:
                 self.Q[s][a] = 0
 
     
-    def random_action(self,a,state):
+    def random_action(self,a,state,eps):
         p = np.random.random()
         available_actions=self.env.available_actions(state)
         
-        if p < (1 - self.eps):
-            print("taking the action as passed in the function",a)
-            return a
+        if p < (1 - eps):
+            #print("taking the action as passed in the function",a)
+            return a,0
         else:
             random =np.random.choice(available_actions)
             #print("random generator on, these are the available actions",available_actions)
-            print("taking a random choice of available actions",random )
-            return random
+            #print("taking a random choice of available actions",random )
+            return random,1
         
 
     def reset_history(self):
         self.state = []
 
-    def choose_action(self,state):
-        # choose an action based on epsilon-greedy strategy
-     
-        #if self.env.ended == False:
-            #print(terminal_state(Patients_orig,s))
+    def choose_action(self,state,t):
+      
             Q=self.Q
             s=state
-            #print("this is the current state for this agent", s)
 
+            # choose an action based on epsilon-greedy strategy
             a, _ = max_dict(Q[s])
-            #print("for this state, the best action seems to be", a)
+            a,ran = self.random_action(a,s,eps=0.5/t) 
 
-            a = self.random_action(a,s) # epsilon-greedy
-            #print("next action is",a)
+     
             r = self.env.reward(a)
-            self.payoff+=r
+            self.payoff.append(r)
             #print("patient List",Patient_list)
 
             s2 = self.env.treat_patient(a,s)
@@ -168,23 +163,24 @@ class Agent:
 
             #print("checking new values for a2,s2",a2, max_q_s2a2 )
             Q[s][a] = Q[s][a] + self.alpha*(r + self.gamma * max_q_s2a2 - Q[s][a])
-            #biggest_change = max(biggest_change, np.abs(old_qsa - Q[s][a]))
-
+            self.biggest_change = max(self.biggest_change, np.abs(old_qsa - Q[s][a]))
+            #self.update_counts[s] = update_counts.get(s,0) + 1
             # we would like to know how often Q(s) has been updated too
             #update_counts[s] = update_counts.get(s,0) + 1
 
       
-            print("new state",s2)
-            return s2
+            #print("new state",s2)
+            return s2,a,r,ran
             #print("new a2", a2)
            
-    def get_policy(self,state):
+    def get_policy(self,Q):
 
-        states = self.env.all_possible_states()
+        states = Q.keys()
+        print("Available states",states)
         policy = {}
         V = {}
         for s in states:
-            a, max_q = max_dict(self.Q[s])
+            a, max_q = max_dict(Q[s])
             policy[s] = a
             V[s] = max_q
 
@@ -202,37 +198,12 @@ class Agent:
 
 
 
-# def play_game(p1, p2, env):
-#     # loops until the game is over
-#     current_player = None
-#     state=()
-#     while env.game_over(state):
-        
-#         # alternate between players
-#         # p1 always starts first
-#         if current_player == p1:
-            
-#             current_player = p2
-#             print("P2 turn")
-#         else:
-#             current_player = p1
-#             print("P1 turn")
-
-#         # current player makes a move
-#         state,action=current_player.choose_action(state)
-    
-#     #state=list(state)
-#     state=()
-
-#     print("reset state",state)
-       
 
 if __name__ == '__main__':
     
     
-    Patients = ["ANNA", "BELA", "FARIN"]
-    rewards = [4, 2, 1, 0]  
-
+    Patients = ["ANNA", "BELA", "FARIN","ROD"]
+    rewards = [1, 5, 5, 1]  
 
 
     hosp=Environment(Patients, rewards)
@@ -244,38 +215,64 @@ if __name__ == '__main__':
 
     Doc2=Agent(hosp)
     Doc2.initialize_Q()
+    try:
+        os.remove("logs.csv") 
+    except:
+        print("log file does not exist")
 
-    T = 20
-    for t in range(T):
-        print("round",t)
+    Rounds = 8000
+    t=1.0
+
+    for r in range(Rounds):
+        if r %100 ==0: 
+            t += 1e-2
+        if r % 2000 == 0:
+            print("it:", r)
+       # print("round",t)
 
         state1=()
-        hosp.patient_list=["ANNA", "BELA", "FARIN"]
+        hosp.patient_list=["ANNA", "BELA", "FARIN","ROD"]
 
         #randomly decide which doc starts moving 
         current_player_idx = random.choice([0,1])
+        it=0
+        Doc1.biggest_change=0
+        Doc2.biggest_change=0
         while hosp.game_over(state1):
-            
+            #it=0
             if current_player_idx == 0: 
-                print("Doc 1 turn")
+                #print("Doc 1 turn")
                 current_player=Doc1
+                #it+=1
 
             else:
                 current_player=Doc2
-                print("Doc 2 turn")
-       
-            state1=current_player.choose_action(state1)
+                #print("Doc 2 turn")
+                
+
+            state1,a,re,ran =current_player.choose_action(state1,t)
+            bc=current_player.biggest_change
+            it+=1
+            store_data(r,current_player_idx,it,a,re,bc,ran )
+            #print(it)
+            #next player 
+            
             current_player_idx = (current_player_idx + 1)%2
+            #print(biggest_change1)
+        
+        #deltas.append(biggest_change1)
 
-    # print("Q Table of Doc1",Doc1.Q)
-    # print("Q Table of Doc2", Doc2.Q)
-    print ("collected payoff Doc 1",Doc1.payoff)
-    print ("collected payoff Doc 2",Doc2.payoff)
-    
-    plt.plot(Doc1.payoff, Doc2.payoff)
-    plt.show()
+   
+    #print(Doc1.Q)
+    Policy_doc1=Doc1.get_policy(Doc1.Q)
+    Policy_doc2=Doc2.get_policy(Doc2.Q)
 
-    
+    #Policy_doc2=Doc2.get_policy()
+
+    show_policies(Policy_doc1)
+    show_policies(Policy_doc2)
+
+  
 
 
 
