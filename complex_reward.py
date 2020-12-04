@@ -4,8 +4,7 @@ import itertools
 Patient_info =	{
     "A": ["tx", "ty","tz"],
     "B": ["ty"],
-    "C": ["tx", "ty"],
-    "D": ["ty", "tx"]
+    "C": ["tx", "ty"]
 } 
 
 rewards={
@@ -35,55 +34,82 @@ all_options=[]
 
 
 
-# per = itertools.permutations(Patient_info)
-# for val in per:
-#     #print("permutation of", val)
-#     for L in range(0, len(val)+1):
-#         for subset in itertools.combinations(val, L):
-#             #print("possible combinations", subset)
-#             all_options.append(subset)
 
-# short_version= set(all_options)
-
-# neue_liste=[]
-# per2=itertools.permutations(Patient_info['A'])
-
-# for val in per2:
-#     #neue_liste.append(keys)
-#     for L in range(0, len(val)+1):
-#         for subset in itertools.combinations(val, L):
-#             #print("possible combinations", subset)
-#             neue_liste.append(subset)
-    
-# #     all_opt=list(itertools.product(Patient_info[keys], Doc.keys())) 
-# #     neue_liste.append(all_opt)
-# #     print('keys', keys, 'all opt',all_opt)
-
-
-keys=Patient_info.keys()
-per = itertools.permutations(keys)
+patients = Patient_info.keys()
 #REIHENFOLGE PATIENTEN
-Q=[]
-for key in keys: 
-    #print(key)
-    per2=itertools.permutations(Patient_info[key])
+Q = []
+# For every patient 
+for patient in patients: 
+    treatments = (Patient_info[patient])
+    patient_treatment = []
+    patient_treatment_list = []
+    patient_treatment_list.append((patient,patient_treatment[:]))
+    # For every treatment of the patient
+    for treatment in treatments:
+        patient_treatment.append(treatment)
+        patient_treatment_list.append((patient,patient_treatment[:]))
+
+    Q.append(patient_treatment_list)
+
+# print(Q)
+
+permutations = list(itertools.permutations(range(len(patients)),len(patients)))
+Q_new = []
+
+seq=('elementsA','elementsB','elementsC')
+seq=list(itertools.permutations(seq))
+print(seq)
+
+for elementsA in Q[0]:
+    for elementsB in Q[1]:
+        for elementsC in Q[2]:
+            
+            Q_new.append([elementsA, elementsB, elementsC])
+            Q_new.append([elementsA, elementsC, elementsB])
+            Q_new.append([elementsB, elementsA, elementsC])
+            Q_new.append([elementsB, elementsC, elementsA])
+            Q_new.append([elementsC, elementsB, elementsA])
+            Q_new.append([elementsC, elementsA, elementsB])
+
+
+
+
+print(Q_new)
+print(len(Q_new))
+
+# def iterate_treatments(index, permutation_length, treatment_list, Q_old):
+#     Q_list = []
+#     if(index == permutation_length):
+#         return treatment_list
+#     else:
+#         for element in Q_old[index]:
+#             treatment_list_new = treatment_list[:]
+#             treatment_list_new.append(element)
+#             Q_list.extend(iterate_treatments(index+1, permutation_length, treatment_list_new[:], Q_old))
+#             print(iterate_treatments(index+1, permutation_length, treatment_list_new[:], Q_old))
+#             print('____________________________________')
+#     return Q_list
+
+# Q_newnew = iterate_treatments(0,2,[],Q)
+# print(Q_newnew)
+# print(len(Q_newnew))
+
+# print(Q)
+# perQ= itertools.permutations(Q)
+# newQ=[]
+
+
+# for per in perQ:
+#     #print(per)
+#     print(per)
+#     # prodQ=itertools.product(per)
+#     # for prod in prodQ:
+#     #     newQ.append(prodQ)
     
-    for val in per2: 
-        #print(val)
-        pat=(key,val)
-        Q.append(pat)
 
-       
-        for L in range(0, len(val)+1):
-            for subset in itertools.combinations(val, L):
-                #print("sub", subset)
-                pat=(key,subset)
-                Q.append(pat)
-           
-#print(Q, len(Q))
-short_q=set(Q)
-print("short q", short_q, len(short_q))
+##Q_new=set(Q_new)
+#print(Q_new)
 
-for l in range(0,len(short_q)+1):
-    for subset in itertools.combinations(short_q,L):
-        print(subset)
+#test = list(itertools.product(*Q))
+
+#print(len(newQ))

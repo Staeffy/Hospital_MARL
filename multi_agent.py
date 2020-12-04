@@ -83,8 +83,6 @@ class Environment:
         #     pass
         # else:
         #     pass
-
-
         return any([True for patient in self.patient_list if patient not in state])
   
 
@@ -154,7 +152,7 @@ class Agent:
             a2=self.env.available_actions(s2)
             #print("treated patient/s {} so far. Choosing patient {} to treat next, getting reward {} now the new state is {} and my available actions are {}".format(s,a,r,s2,a2))
 
-            # we will update Q(s,a) AS we experience the episode
+            # update Q(s,a) AS we experience the episode
             old_qsa = Q[s][a]
             #print("old Q(s,a)",old_qsa)
             # the difference between SARSA and Q-Learning is with Q-Learning
@@ -170,7 +168,6 @@ class Agent:
       
             #print("new state",s2)
             return s2,a,r,ran
-            #print("new a2", a2)
            
     def get_policy(self,Q):
 
@@ -227,7 +224,7 @@ if __name__ == '__main__':
     except:
         print("log file does not exist")
 
-    Rounds = 8000
+    Rounds = 1000
     t=1.0
 
     for r in range(Rounds):
@@ -271,7 +268,7 @@ if __name__ == '__main__':
         #deltas.append(biggest_change1)
 
     
-    #print(Doc1.Q)
+    print(Doc1.Q)
     Policy_doc1=Doc1.get_policy(Doc1.Q)
     Policy_doc2=Doc2.get_policy(Doc2.Q)
 

@@ -21,10 +21,12 @@ def get_total_doc_rewards(data):
 
 def plot_reward_difference(data):
     df = data.groupby(['Round', 'Doc']).sum()['Reward']
+    print(df)
     df=df.unstack()
     df=abs(df[0]-df[1])
-    print(df)
-    df.plot() 
+    print(df[12500:17000])
+    
+    plt.plot(df.values) 
     plt.show() 
 
 def plot_Q_diff(df):
@@ -36,6 +38,7 @@ def plot_Q_diff(df):
     df=df.unstack()
     df.plot()
     plt.show()
+    plt.savefig('Q_diff.png')
 
 
 def plot_multi_data(x,y,line,data):
@@ -57,24 +60,24 @@ if __name__ == "__main__":
     #print(df.head())
 
     #PLOT REWARD DIFF
-    #plot_reward_difference(df)
+    plot_reward_difference(tr)
 
     #PLOT Q DIFF
     #plot_Q_diff(tr)
 
    
 
-    rl.columns = ["Round", "Doc", "Reward"]
-    print(rl)
+    # rl.columns = ["Round", "Doc", "Reward"]
+    # print(rl)
 
-    r=get_total_doc_rewards(rl)
-    print(r)
-    
+    # r=get_total_doc_rewards(rl)
+    # print(r)
+
     ##COUNT RANDOM ACTIONS 
     #ran_act=df.groupby(['Doc']).sum()['Random action']
     #print(ran_act)
 
-    #plot_Q_diff(df)
+    #plot_Q_diff(tr)
 
     ##PATIENT SEQUENCE 
     #patient_seq=df.groupby(['Patient']).sum()['Iteration']
