@@ -9,6 +9,7 @@ import pandas as pd
 import seaborn as sns
 import csv
 import os
+import complex_reward
 class Environment:
 
     def __init__(self, patient_list, reward_list):
