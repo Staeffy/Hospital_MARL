@@ -132,8 +132,4 @@ dmypy.json
 
 
 
-env_mdp.py
-greedy.py
-single_agent.py
-./Game_theory
-gitconfig 
+gitconfig
