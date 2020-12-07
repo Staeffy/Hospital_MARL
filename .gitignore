@@ -127,3 +127,13 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+
+
+
+
+env_mdp.py
+greedy.py
+single_agent.py
+./Game_theory
+gitconfig 
