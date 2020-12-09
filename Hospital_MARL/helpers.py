@@ -2,22 +2,31 @@ import collections
 import csv
 import pickle
 
-def show_policies(policy):
+def show_policies(self,policy):
+  """formatter for the policies 
 
-    od = collections.OrderedDict(sorted(policy.items()))
-    for keys in od:
+    Args:
+        policy (dict): The action to choose for every possible state
+  """
 
-        
-        v=policy[keys]
-        if v !='nothing':
+  od = collections.OrderedDict(sorted(policy.items()))
+  for keys in od:
+      v=policy[keys]
+      if v !='nothing':
 
-            print (" {} treated ----------->  {} next".format(keys,v))
-            print("")
+          print (" {} treated ----------->  {} next".format(keys,v))
+          print("")
 
 
 def max_dict(d):
-  # returns the argmax (key) and max (value) from a dictionary
-  # put this into a function since we are using it so often
+  """Loop through dict and get max value and key
+
+  Args:
+      d ([dict]): [Dictionary to find the max value for ]
+
+  Returns:
+      [tuple]: [Returns the argmax (key) and max (value) from the dict]
+  """
   max_key = ()
   max_val = float('-inf')
   for k, v in d.items():
@@ -28,20 +37,41 @@ def max_dict(d):
 
 
 def store_data(data,name):
+  """Appends rows in a file 
 
-    row=data
+  Args:
+      data (list): [The data to be written in rows]
+      name (string): [The name of the file]
+  """
 
-    with open('{}.csv'.format(name), 'a') as f: 
-        f= csv.writer(f)
-        f.writerow(row)
+  row=data
+
+  with open('{}.csv'.format(name), 'a') as f: 
+      f= csv.writer(f)
+      f.writerow(row)
 
 
 
-def save_policy(policy, name ):
-    with open('policy/'+ name + '.pkl', 'wb') as f:
-        pickle.dump(policy, f, pickle.HIGHEST_PROTOCOL)
+def save_policy(data, name ):
+  """Writes a pickl dump file of data
+
+  Args:
+      policy (dict): data that should be dumped
+      name (string): name of the file
+  """
+
+  with open('policy/'+ name + '.pkl', 'wb') as f:
+      pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
 
 def load_policy(name ):
-    with open('policy/' + name + '.pkl', 'rb') as f:
-        return pickle.load(f)
+  """loads pickl file 
+
+  Args:
+      name (string): name of the file 
+
+  Returns:
+      [object]: [the file to be loaded]
+  """
+  with open('policy/' + name + '.pkl', 'rb') as f:
+      return pickle.load(f)
 
