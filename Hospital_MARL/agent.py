@@ -40,7 +40,7 @@ class Doctor:
         """
     
         states = self.env.all_possible_states()
-        #print("these are the possible states")
+        #print("these are the possible states", states)
         for s in states:
             #print(s)
             state=list(s)
@@ -48,7 +48,7 @@ class Doctor:
             possible_actions = self.env.available_actions(state) 
             for a in possible_actions:
                 #print("in this state, the possible actions are",a)
-                #print("for state {} the available actions are {}".format(state,a))
+                print("for state {} the available actions are {}".format(state,a))
                 self.Q[s][a] = 0
 
     
@@ -143,20 +143,7 @@ class Doctor:
         
         return self.policy
 
-    def show_policies(self,policy):
-        """formatter for the policies 
 
-        Args:
-            policy (dict): The action to choose for every possible state
-        """
-
-        od = collections.OrderedDict(sorted(policy.items()))
-        for keys in od:
-            v=policy[keys]
-            if v !='nothing':
-
-                print (" {} treated ----------->  {} next".format(keys,v))
-                print("")
 
 
     def use_policy(self,state):

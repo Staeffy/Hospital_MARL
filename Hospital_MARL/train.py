@@ -1,5 +1,5 @@
 from agent import Doctor
-from environment import Hospital_simple as hosp
+from environment import Hospital_simple, Hospital_complex
 import os 
 import random 
 from helpers import store_data, save_policy
@@ -8,11 +8,27 @@ from helpers import store_data, save_policy
 
 if __name__ == "__main__":
 
-    Patients = ["ANNA", "BELA", "FARIN","ROD"]
-    rewards = [1, 5, 5, 1]  
+    #HOSP SIMPLE VERSION
+    #Patients = ["ANNA", "BELA", "FARIN","ROD"]
+    #rewards = [1, 5, 5, 1]  
+    #hosp=Hospital_simple(Patients, rewards)    
 
+    #COMPLEX VERSION
+    Patients =	{
+        "A": ["tx", "ty","tz"],
+        "B": ["ty"],
+        "D": ["ty", "ty","ty"]
+    } 
 
-    hosp=hosp(Patients, rewards)
+    rewards={
+        'tx':3,
+        'ty':2,
+        'tz':3
+    }
+
+    hosp=Hospital_complex(Patients, rewards)
+    
+
     #print("current patients treated", state)
     #print (hosp.treat_patient('ANNA'))
    
@@ -40,7 +56,7 @@ if __name__ == "__main__":
        # print("round",t)
 
         state1=()
-        hosp.patient_list=["ANNA", "BELA", "FARIN","ROD"]
+        hosp.patient_list=Patients
 
         #randomly decide which doc starts moving 
         current_player_idx = random.choice([0,1])
@@ -72,51 +88,12 @@ if __name__ == "__main__":
         
         #deltas.append(biggest_change1)
 
-    
     #print(Doc1.Q)
     Policy_doc1=Doc1.get_policy(Doc1.Q)
     Policy_doc2=Doc2.get_policy(Doc2.Q)
     #print(Policy_doc1)
 
     save_policy(Policy_doc1,'policy_doc1')
-  
     save_policy(Policy_doc2, 'policy_doc2')
 
-    # show_policies(Policy_doc1)
-    # show_policies(Policy_doc2)
-
-    #PLAY WITH LEARNT POLICY 
-
-    # for r in range(20):
-       
-    #    # print("round",t)
-
-    #     state1=()
-    #     hosp.patient_list=["ANNA", "BELA", "FARIN","ROD"]
-
-    #     #randomly decide which doc starts moving 
-    #     current_player_idx = random.choice([0,1])
     
-    #     Doc1.biggest_change=0
-    #     Doc2.biggest_change=0
-    #     while hosp.game_over(state1):
-    #         #it=0
-    #         if current_player_idx == 0: 
-    #             #print("Doc 1 turn")
-    #             current_player=Doc1
-    #             #it+=1
-
-    #         else:
-    #             current_player=Doc2
-    #             #print("Doc 2 turn")
-                
-
-    #         re,state1=current_player.use_policy(state1)
-    #         data=[r,current_player_idx,re]
-    #         store_data(data,'real_game')  
-    #         current_player_idx = (current_player_idx + 1)%2
-  
-
-
-
-
