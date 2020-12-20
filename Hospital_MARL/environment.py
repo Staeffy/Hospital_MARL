@@ -8,6 +8,7 @@
 import copy
 import itertools
 import numpy as np 
+from helpers import transform_dict_to_tuple, transform_tuple_to_dict
 
 class Hospital_simple():
     """Simplest version of the hospital with a 1 dimensional patient list. 
@@ -149,34 +150,49 @@ class Hospital_complex:
         self.reward_per_patient=reward_list
         #self.winner = None
         #self.num_states = len(self.all_possible_states())
+
+
+    # determine missing treatments 
+    def determine_missing_treatments(self,finished_treatments):
+        #convert to dict 
+        #print("finished treatments to determine missing treatments:", finished_treatments)
+        #print("type of state", finished_treatments)
+        finished_treatments= dict(finished_treatments)
+        needed_treatments = self.patient_list
+        todo_treatments = {}
+
+        for patient in needed_treatments.keys():
+            #print(patient)
+            if patient in finished_treatments.keys():
+                # Some treatments applied already
+                patient_todo_treatments = []
+                for treatment in needed_treatments[patient]:
+                    if not treatment in finished_treatments[patient]:
+                        patient_todo_treatments.append(treatment)
+                todo_treatments[patient] = patient_todo_treatments
+            else:
+                #No treatments applied, yet
+                todo_treatments[patient] = needed_treatments[patient]
+
+        return todo_treatments
           
-    def available_actions(self,state):
-        
-        available_actions = { k : self.patient_list[k] for k in set(self.patient_list) - set(state) }
-        a = []
+    def available_actions(self, state):
 
-        #a=dict()
-        # for (key,value) in available_actions.items():
-        #     a[key] = available_actions[key][0]
+        actions=self.determine_missing_treatments(state)
+        new={}
+        for keys in actions.keys():
+            if any (actions[keys]):
+                new[keys]=actions[keys][0]
 
-        for key in available_actions.keys():
-            pat=key
-            treat=self.patient_list[key][0]
-            action=(pat,treat)
-            a.append(action)
-
-        if not available_actions:
-            #print("there are no actions possible")
-            return (['nothing'])
-            
-        else:
-            return a
+        #print("for state {} the available actions are {}".format(state,new))
+    
+        return new
 
     def reward(self, patient):
         # no reward until game is over
         if patient in self.patient_list:
             treatment=self.patient_list[patient][0] 
-            reward=self.rewards[str(treatment)]
+            reward=self.reward_per_patient[str(treatment)]
           
             return reward
         else: 
@@ -184,28 +200,48 @@ class Hospital_complex:
             return 0
 
     def treat_patient(self,patient,state):
-        print("currently {} patients have been treated".format(state))
-        current_state=list(state)
-        patient_n=patient[0] # first index is patient, second is treatment
-        t= patient[1] 
-        #treatment=patient[1]
-        if patient in self.patient_list:
-            #get index of patient to treat
-            current_treatment=self.patient_list[patient_n][0]
+        #print("currently {} patients have been treated, patient {} will get treated".format(state,patient))
+        
+        #if self.game_over(state):
+        patient=patient[0]
 
-            print("Patient {} is about to get treatment {}".format(patient_n,t))
-            #delete patient from available options
-            del (self.patient_list[patient_n][0])
+        try: 
+            current_treatment=self.patient_list[patient][0]
+            state=transform_tuple_to_dict(state)
+            #print("current patient list", self.patient_list)
+        
+            #print("next patient is {} with treatment {}".format(patient,current_treatment))
             #add treated patient to current state i.e. treated patients 
-            print("new list of available patients is {}".format(self.patient_list))
+            if patient in state:
+                #add treatment to existing patient 
+                #print("Patient {} was treated before".format(patient))
+                state[patient].append(current_treatment)
+                #print("new state is {}".format(state))
+            else: 
+                #add new patient into list with first treatment
+                #print("Patient {} is new ".format(patient))
+                state[patient]=[current_treatment]
+                #print("new state is {}".format(state))
+            #current_state=tuple(state)
 
-            current_state.append(patient)
-            #current_state=tuple(current_state)
-            print("these patients have been treated so far {}".format(current_state))    
-            return tuple(current_state)
-        else: 
-            #print("unable to treat {} ",patient)
-            return self.treated_patients
+            #print("Patient {} is about to get treatment {}".format(patient,current_treatment))
+            #delete patient from available options
+            del (self.patient_list[patient][0])
+            #print("new list of available patients is {}".format(self.patient_list))
+
+            formatted_patient_list=transform_dict_to_tuple(state)
+
+            return formatted_patient_list
+        except:
+            #print("patient {} cant be treated".format(patient))
+            return state
+        
+        # else:
+        #     print("no patients left to be treated", state)
+        #     return state
+      
+
+
 
     def all_possible_states(self):
             
@@ -229,9 +265,11 @@ class Hospital_complex:
         for i in Q:
             a= Q[0]
             b= Q[1]
-            c= Q[2]
+            #c= Q[2]
         
-        test=itertools.product(a,b,c)
+        test=itertools.product(a,b)
+        #test=itertools.product(a,b,c)
+
         new_opt=[]
         for i in test:
             # permutation
@@ -247,44 +285,23 @@ class Hospital_complex:
                         #print("possible combinations", subset)
                         new_opt.append(subset)
 
-        #short_version=set(new_opt)
-        return new_opt
+        #work around to remove duplicate entries
+        all_opt=list(new_opt)
+        short_version=set(all_opt)
+        return short_version
 
 
 
     def game_over(self,state):
 
-        return any({ k : self.patient_list[k] for k in set(self.patient_list) - set(state) })
+        check_status=self.available_actions(state)
+        if any(check_status):
+            #print("there is something to do")
+            return True
+        else:
+            #print("game is over")
+            return False
+
+        #return any({ k : self.patient_list[k] for k in set(self.patient_list) - set(state) })
 
 
-#if __name__ == "__main__":
-    
-#     Patient_info =	{
-#     "A": ["tx", "ty","tz"],
-#     "B": ["ty"],
-#     "D": ["ty", "ty","ty"]
-# } 
-
-# rewards={
-#     'tx':3,
-#     'ty':2,
-#     'tz':3
-# }
-
-# {
-#     "A": ["tx", "ty","tz"],
-#     "B": ["ty"],
-#     "D": ["ty", "ty","ty"]
-# } 
-
-# hosp=Hospital_complex(Patient_info, rewards)
-# test=hosp.all_possible_states()
-
-# #print(test)
-
-# state = ()
-# p1=['A','tx']
-# actions=hosp.available_actions(state)
-# print(actions)
-# treat_pat=hosp.treat_patient(p1,state)
-# print(treat_pat)

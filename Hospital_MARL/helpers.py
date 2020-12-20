@@ -33,6 +33,10 @@ def max_dict(d):
     if v > max_val:
       max_val = v
       max_key = k
+    
+    else: 
+        max_val =0
+        max_key = k
   return max_key, max_val
 
 
@@ -75,3 +79,40 @@ def load_policy(name ):
   with open('policy/' + name + '.pkl', 'rb') as f:
       return pickle.load(f)
 
+
+
+
+def transform_dict_to_tuple(data):
+
+    if type(data)==dict:
+        #print("transforming dict {} into tuple".format(data))
+        new_format=[]
+        for item in data.keys():
+            #new_format.append(item)
+            values=data[item]
+            values=tuple(values)
+            formatting= (item, values)
+            new_format.append(formatting)
+
+        return(tuple(new_format))
+    else:
+        #print("Can't transform {} of type {} to tuple".format(data, type(data)))
+        return data
+
+
+def transform_tuple_to_dict(data):
+    
+    new_format={}
+    if type(data)==tuple:
+        #print("transforming tuple {} into dict".format(data))
+
+        data = dict(data)
+        for keys in data.keys():
+            dict_values=data[keys]
+            dict_values=list(dict_values)
+            new_format[keys]=dict_values
+        #print("new dict is {}".format(new_format))
+        return new_format
+    else: 
+        #print("data of type {} was not transformed into dict".format(type(data)))
+        return data

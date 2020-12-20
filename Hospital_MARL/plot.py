@@ -54,16 +54,16 @@ def plot_random_ratio(data):
 if __name__ == "__main__":
     
 
-    tr= get_data('training')
+    #tr= get_data('training')
     rl=get_data('real_game')
     
     #print(df.head())
 
     #PLOT REWARD DIFF
-    plot_reward_difference(tr)
+    #plot_reward_difference(tr)
 
     #PLOT Q DIFF
-    plot_Q_diff(tr)
+    #plot_Q_diff(tr)
 
    
 
