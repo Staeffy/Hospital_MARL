@@ -22,24 +22,31 @@ if __name__ == "__main__":
 
 
     #COMPLEX VERSION
-    Patients =	{
-        "A": ["t1", "t2","t3"],
-        "B": ["t3","t4","t1"]
+    Patients ={
+        "A": {'treatments':["t1", "t2"],
+            'history':'Doc1'},
+        "B":    {'treatments':["t1","t2","t1"],
+            'history:':None
+                }
     } 
 
     rewards={
         't1':5,
         't2':1,
         't3':5,
-        't4':1
+        't4':1,
+        '()':0
     }
+    
 
     hosp=Hospital_complex(Patients, rewards)
     print("----------INITIALIZING COMPLEX DOCTORS-------------")
+    doc1_skill={'skill': ['t1', 't2']}
+    doc2_skill={'skill': ['t1']}
 
-    Doc1 = Doctor_complex(hosp)
+    Doc1 = Doctor_complex(hosp,doc1_skill)
     Doc1.initialize_Q()
-    Doc2=Doctor_complex(hosp)
+    Doc2=Doctor_complex(hosp, doc2_skill)
     Doc2.initialize_Q()
 
     try:
@@ -47,38 +54,41 @@ if __name__ == "__main__":
     except:
         print("log file does not exist")
 
-    Rounds = 10000
+    Rounds = 2
     t=1.0
     print("------------STARTING TRAINING------------------")
 
     for r in range(Rounds):
-        if r %100 ==0: 
-            t += 1e-2
-        if r % 2000 == 0:
-            print("it:", r)
+        # if r %100 ==0: 
+        #     t += 1e-2
+        # if r % 2000 == 0:
+        print("it:", r)
 
         state1=()
-        hosp.patient_list= {
-        "A": ["t1", "t2","t3"],
-        "B": ["t3","t4"]
-    } 
+        hosp.patient_list ={
+        "A": {'treatments':["t1", "t2"],
+            'history':'Doc1'},
+        "B":    {'treatments':["t1","t2","t1"],
+            'history:':None
+                }
+        } 
 
         #randomly decide which doc starts moving 
         current_player_idx = random.choice([0,1])
         it=0
         Doc1.biggest_change=0
         Doc2.biggest_change=0
-        #print("------NEW ROUND ------ ", r)
+        print("------NEW ROUND ------ ", r)
         while hosp.game_over(state1):
             #it=0
             if current_player_idx == 0: 
-                #print("Doc 1 turn")
+                print("Doc 1 turn")
                 current_player=Doc1
                 #it+=1
 
             else:
                 current_player=Doc2
-                #print("Doc 2 turn")
+                print("Doc 2 turn")
                 
 
             state1,a,re,ran =current_player.choose_action(state1,t)

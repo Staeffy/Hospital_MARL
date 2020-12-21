@@ -182,7 +182,7 @@ class Doctor_complex:
     """[Doctors perform actions in their environment, which is why they need to get the environment as paramenter]
     """
 
-    def __init__(self,env, eps=0.01, alpha=0.8):
+    def __init__(self,env,skill,  eps=0.01, alpha=0.8):
         """Initialize the doctor to be able to perform actions -> treat patients.
         While performing actions, the doctor updates his self.Q and collects the corresponding self.payoff and finally reaches the final self.policy
 
@@ -200,6 +200,8 @@ class Doctor_complex:
         self.payoff=[]
         self.biggest_change=0  #this change corresponds to the change of the Q value which is updated
         self.policy={}
+        self.skill=skill
+        self.help_requested=False
 
 
     def initialize_Q(self):
@@ -212,31 +214,33 @@ class Doctor_complex:
             state=list(s)
             #print(state)
             self.Q[s] = {}        
-            possible_actions = self.env.available_actions(state) 
-            
-            for a in possible_actions:
-                #print("in this state, the possible actions are",a)
-                patient = a
-                treatments= possible_actions[a]
-                a=(patient,treatments)
-                print("for state {} the available actions are {}".format(state,a))
-                self.Q[s][a] = 0
-
+            possible_actions = self.env.available_actions(state,self.skill) 
+            if any(possible_actions):
+                for a in possible_actions:
+                    patient = a
+                    treatments= possible_actions[a]
+                    a=(patient,treatments)
+                    #print("for state {} the available actions are {}".format(state,a))
+                    self.Q[s][a] = 0
+            else: 
+                self.Q[s][()] = 0
    
     def random_action(self,a,state,eps):
         """performs a random action based on the epsilon-greedy approach
 
         Args:
-            a (string): Action i.e. patient to be treated
-            state (tuple): The current state i.e. patients that have been treated already 
-            eps (epsilon): [description]
+            a (tuple): Action i.e. patient and treatment to be done -> (Patient, Treatment)
+            state (tuple): The current state i.e. patients, treatments that have been treated already 
+            eps (epsilon): Epsilon value 
 
         Returns:
             sting, binary: return the action chosen and whether it was random 1 or not 0 
         """
         p = np.random.random()
-        available_actions=self.env.available_actions(state)
-        action_list= list(available_actions)
+        available_actions=self.env.available_actions(state,self.skill)
+       
+
+
         #print("available actions are ", available_actions)
         if p < (1 - eps):
             #print("taking the action as passed in the function",a)
@@ -245,10 +249,19 @@ class Doctor_complex:
 
             return a,0
         else:
-            random =np.random.choice(action_list)
+            if any (available_actions):
+                action_list= list(available_actions)
+                random =np.random.choice(action_list)
+                return (random,available_actions[random]),1
+ 
+            else:
+                print("no actions possible")
+                return (),1
+                
+           
             #print("random generator on, these are the available actions",action_list)
             #print("taking a random choice of available actions",(random,available_actions[random]) )
-            return (random,available_actions[random]),1
+            
         
 
     def reset_state(self):
@@ -281,7 +294,7 @@ class Doctor_complex:
 
         s2 = self.env.treat_patient(a,s)
 
-        a2=self.env.available_actions(s2)
+        a2=self.env.available_actions(s2,self.skill)
         #print("treated patient/s {} so far. Choosing patient {} to treat next, getting reward {} now the new state is {} and my available actions are {}".format(s,a,r,s2,a2))
 
         # update Q(s,a) AS we experience the episode
@@ -289,6 +302,9 @@ class Doctor_complex:
             old_qsa = Q[s][a]
         except:
             print("cant update old_qsa with state: {} and action {}".format(s,a))
+            
+        
+
         #print("old Q(s,a)",old_qsa)
         # the difference between SARSA and Q-Learning is with Q-Learning
         # we will use this max[a']{ Q(s',a')} in our update
@@ -329,6 +345,8 @@ class Doctor_complex:
             V[s] = max_q
         
         return self.policy
+
+    #def ask_for_help():
 
 
     def use_policy(self,state):

@@ -159,6 +159,7 @@ class Hospital_complex:
         #print("type of state", finished_treatments)
         finished_treatments= dict(finished_treatments)
         needed_treatments = self.patient_list
+
         todo_treatments = {}
 
         for patient in needed_treatments.keys():
@@ -166,49 +167,55 @@ class Hospital_complex:
             if patient in finished_treatments.keys():
                 # Some treatments applied already
                 patient_todo_treatments = []
-                for treatment in needed_treatments[patient]:
+                for treatment in needed_treatments[patient]['treatments']:
                     if not treatment in finished_treatments[patient]:
                         patient_todo_treatments.append(treatment)
                 todo_treatments[patient] = patient_todo_treatments
             else:
                 #No treatments applied, yet
-                todo_treatments[patient] = needed_treatments[patient]
+                todo_treatments[patient] = needed_treatments[patient]['treatments']
 
         return todo_treatments
           
-    def available_actions(self, state):
-
+    def available_actions(self, state, skill):
+        
         actions=self.determine_missing_treatments(state)
+        print(actions)
         new={}
         for keys in actions.keys():
             if any (actions[keys]):
-                new[keys]=actions[keys][0]
+                
+                #check if doctor has the skill to perform the action 
+                if actions[keys][0] in skill['skill']:
+                    new[keys]=actions[keys][0]
 
         #print("for state {} the available actions are {}".format(state,new))
-    
         return new
 
     def reward(self, patient_treatment):
         # no reward until game is over
         #in tuple patient, the first index is the patient and the second the treatment 
-        patient = patient_treatment[0]
-        if patient in self.patient_list:
-            treatment=patient_treatment[1]
-            reward=self.reward_per_patient[str(treatment)]
-            #print("Reward is {}".format(reward))
-            return reward
+        #print("getting reward for patient", patient_treatment)
+        if any(patient_treatment):
+            patient = patient_treatment[0]
+            if patient in self.patient_list:
+                treatment=patient_treatment[1]
+                reward=self.reward_per_patient[str(treatment)]
+                #print("Reward is {}".format(reward))
+                return reward
         else: 
-            #print("Nice, there are no more patients to treat")
-            return 10
+            #print("No reward for doing nothing")
+            return 0
 
-    def treat_patient(self,patient,state):
+    def treat_patient(self,patient_treatment,state):
         #print("currently {} patients have been treated, patient {} will get treated".format(state,patient))
         
         #if self.game_over(state):
-        patient=patient[0]
-
-        try: 
-            current_treatment=self.patient_list[patient][0]
+       
+        if any(patient_treatment):
+            #print("about to treat patient",patient_treatment)
+            patient=patient_treatment[0]
+            current_treatment=patient_treatment[1]
             state=transform_tuple_to_dict(state)
             #print("current patient list", self.patient_list)
         
@@ -228,13 +235,13 @@ class Hospital_complex:
 
             #print("Patient {} is about to get treatment {}".format(patient,current_treatment))
             #delete patient from available options
-            del (self.patient_list[patient][0])
+            del (self.patient_list[patient]['treatments'][0])
             #print("new list of available patients is {}".format(self.patient_list))
 
             formatted_patient_list=transform_dict_to_tuple(state)
 
             return formatted_patient_list
-        except:
+        else:
             #print("patient {} cant be treated".format(patient))
             return state
         
@@ -252,7 +259,7 @@ class Hospital_complex:
         Q = []
         # For every patient 
         for patient in patients: 
-            treatments = (self.patient_list[patient])
+            treatments = (self.patient_list[patient]['treatments'])
             patient_treatment = []
             patient_treatment_list = []
             #patient_treatment_list.append((patient,patient_treatment[:]))
@@ -296,13 +303,15 @@ class Hospital_complex:
 
     def game_over(self,state):
 
-        check_status=self.available_actions(state)
-        if any(check_status):
-            #print("there is something to do")
-            return True
-        else:
-            #print("game is over")
-            return False
+        check_status=self.determine_missing_treatments(state)
+        for keys in check_status.keys():
+            if any (check_status[keys]):
+
+                #print("there is something to do")
+                return True
+            else:
+                #print("game is over")
+                return False
 
         #return any({ k : self.patient_list[k] for k in set(self.patient_list) - set(state) })
 
