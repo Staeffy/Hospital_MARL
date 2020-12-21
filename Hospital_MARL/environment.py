@@ -188,16 +188,18 @@ class Hospital_complex:
     
         return new
 
-    def reward(self, patient):
+    def reward(self, patient_treatment):
         # no reward until game is over
+        #in tuple patient, the first index is the patient and the second the treatment 
+        patient = patient_treatment[0]
         if patient in self.patient_list:
-            treatment=self.patient_list[patient][0] 
+            treatment=patient_treatment[1]
             reward=self.reward_per_patient[str(treatment)]
-          
+            #print("Reward is {}".format(reward))
             return reward
         else: 
             #print("Nice, there are no more patients to treat")
-            return 0
+            return 10
 
     def treat_patient(self,patient,state):
         #print("currently {} patients have been treated, patient {} will get treated".format(state,patient))

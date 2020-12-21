@@ -2,7 +2,7 @@ import collections
 import csv
 import pickle
 
-def show_policies(self,policy):
+def show_policies(policy):
   """formatter for the policies 
 
     Args:
@@ -28,7 +28,7 @@ def max_dict(d):
       [tuple]: [Returns the argmax (key) and max (value) from the dict]
   """
   max_key = ()
-  max_val = float('-inf')
+  max_val = 0
   for k, v in d.items():
     if v > max_val:
       max_val = v
@@ -37,6 +37,8 @@ def max_dict(d):
     else: 
         max_val =0
         max_key = k
+  
+  #print("in dict {} the max value is {} with key {}".format(d,max_val, max_key))
   return max_key, max_val
 
 
@@ -78,6 +80,8 @@ def load_policy(name ):
   """
   with open('policy/' + name + '.pkl', 'rb') as f:
       return pickle.load(f)
+
+    
 
 
 

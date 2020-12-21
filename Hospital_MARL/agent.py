@@ -182,7 +182,7 @@ class Doctor_complex:
     """[Doctors perform actions in their environment, which is why they need to get the environment as paramenter]
     """
 
-    def __init__(self,env, eps=0.01, alpha=0.5):
+    def __init__(self,env, eps=0.01, alpha=0.8):
         """Initialize the doctor to be able to perform actions -> treat patients.
         While performing actions, the doctor updates his self.Q and collects the corresponding self.payoff and finally reaches the final self.policy
 
@@ -207,17 +207,6 @@ class Doctor_complex:
         """
     
         states = self.env.all_possible_states()
-        #print("these are the possible states", states)
-        # for s in states:
-        #     #print(s)
-        #     state=list(s)
-        #     self.Q[s] = {}        
-        #     possible_actions = self.env.available_actions(state) 
-        #     for a in possible_actions:
-        #         #print("in this state, the possible actions are",a)
-        #         #print("for state {} the available actions are {}".format(state,a))
-        #         self.Q[s][a] = 0
-
         for s in states:
         #print(s)
             state=list(s)
@@ -282,10 +271,6 @@ class Doctor_complex:
         # choose an action based on epsilon-greedy strategy
         a, _ = max_dict(Q[s])
 
-        #if a == ():
-            #ipdb.set_trace()
-            #max_dict(Q[s])
-
         #print("action determined out of max_dict",a, s)
         a,ran = self.random_action(a,s,eps=0.5/t) 
 
@@ -313,7 +298,9 @@ class Doctor_complex:
         #print("checking new values for a2,s2",a2, max_q_s2a2 )
         save = Q[s][a]
         Q[s][a] = Q[s][a] + self.alpha*(r + self.gamma * max_q_s2a2 - Q[s][a])
-        
+        #print (save , self.alpha , ( r , self.gamma , max_q_s2a2 , save))
+        #print(Q[s][a])
+
         #ipdb.set_trace()
         self.alpha*(r + self.gamma * max_q_s2a2 - Q[s][a])
 
@@ -342,8 +329,6 @@ class Doctor_complex:
             V[s] = max_q
         
         return self.policy
-
-
 
 
     def use_policy(self,state):

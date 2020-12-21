@@ -1,68 +1,74 @@
-from agent import Doctor
+from agent import Doctor, Doctor_complex
 from environment import Hospital_simple, Hospital_complex
 import os 
 import random 
-from helpers import store_data, save_policy
+from helpers import store_data, save_policy, show_policies
 
 
 
 if __name__ == "__main__":
 
     #HOSP SIMPLE VERSION
-    #Patients = ["ANNA", "BELA", "FARIN","ROD"]
-    #rewards = [1, 5, 5, 1]  
-    #hosp=Hospital_simple(Patients, rewards)    
+    # Patients = ["ANNA", "BELA", "FARIN","ROD"]
+    # rewards = [1, 5, 5, 1]  
+    # hosp=Hospital_simple(Patients, rewards)
+    # print("----------INITIALIZING SIMPLE DOCTORS-------------")
+
+    # Doc1 = Doctor(hosp)
+    # Doc1.initialize_Q()
+    # Doc2=Doctor(hosp)
+    # Doc2.initialize_Q()
+
+
 
     #COMPLEX VERSION
     Patients =	{
-        "A": ["tx", "ty","tz"],
-        "B": ["ty"],
-        "D": ["ty", "ty","ty"]
+        "A": ["t1", "t2","t3"],
+        "B": ["t3","t4","t1"]
     } 
 
     rewards={
-        'tx':3,
-        'ty':2,
-        'tz':3
+        't1':5,
+        't2':1,
+        't3':5,
+        't4':1
     }
 
     hosp=Hospital_complex(Patients, rewards)
-    
+    print("----------INITIALIZING COMPLEX DOCTORS-------------")
 
-    #print("current patients treated", state)
-    #print (hosp.treat_patient('ANNA'))
-   
-    Doc1 = Doctor(hosp)
+    Doc1 = Doctor_complex(hosp)
     Doc1.initialize_Q()
-
-    Doc2=Doctor(hosp)
+    Doc2=Doctor_complex(hosp)
     Doc2.initialize_Q()
-    #print(hosp.treated_patients)
+
     try:
         os.remove("training.csv") 
-        os.remove("real_game.csv") 
     except:
         print("log file does not exist")
 
-    Rounds = 100
+    Rounds = 10000
     t=1.0
-    print('Starting training ')
+    print("------------STARTING TRAINING------------------")
 
     for r in range(Rounds):
         if r %100 ==0: 
             t += 1e-2
         if r % 2000 == 0:
             print("it:", r)
-       # print("round",t)
 
         state1=()
-        hosp.patient_list=Patients
+        hosp.patient_list= {
+        "A": ["t1", "t2","t3"],
+        "B": ["t3","t4"]
+    } 
 
         #randomly decide which doc starts moving 
         current_player_idx = random.choice([0,1])
         it=0
         Doc1.biggest_change=0
         Doc2.biggest_change=0
+        #print("------NEW ROUND ------ ", r)
         while hosp.game_over(state1):
             #it=0
             if current_player_idx == 0: 
@@ -85,13 +91,18 @@ if __name__ == "__main__":
             
             current_player_idx = (current_player_idx + 1)%2
             #print(biggest_change1)
-        
+            #print(current_player.Q[(('B', ('t1',)),)])
+        #print("---FINAL STATE IS ---- ", state1)
         #deltas.append(biggest_change1)
 
-    #print(Doc1.Q)
+    print(Doc1.Q)
     Policy_doc1=Doc1.get_policy(Doc1.Q)
     Policy_doc2=Doc2.get_policy(Doc2.Q)
+    
     #print(Policy_doc1)
+    show_policies(Policy_doc1)
+    show_policies(Policy_doc2)
+
 
     save_policy(Policy_doc1,'policy_doc1')
     save_policy(Policy_doc2, 'policy_doc2')

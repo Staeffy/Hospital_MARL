@@ -10,7 +10,7 @@ def get_data(name):
     if name=='training':
         df.columns = ["Round", "Doc", "Iteration", "Patient","Reward","Q_diff","Random action"]
     
-    if name=='real_data':
+    if name=='real_game':
         df.columns = ["Round", "Doc", "Reward"]
     #df.set_index('Round')
     return df
@@ -27,6 +27,9 @@ def plot_reward_difference(data):
     #print(df[12500:17000])
     
     plt.plot(df.values) 
+    plt.title('Reward difference of doc 1 and 2')
+    plt.xlabel('iterations')
+    plt.ylabel('Reward difference')
     plt.show() 
 
 def plot_Q_diff(df):
@@ -37,6 +40,9 @@ def plot_Q_diff(df):
     #print(df)
     df=df.unstack()
     df.plot()
+    plt.title('Q - difference')
+    plt.xlabel('iterations')
+    plt.ylabel('values')
     plt.show()
     plt.savefig('Q_diff.png')
 
@@ -48,6 +54,8 @@ def plot_multi_data(x,y,line,data):
 
 def plot_random_ratio(data):
     sns.catplot(x="Random action", kind="count", palette="ch:.25", data=df)
+    plt.title('Random Ratio')
+
     plt.show()
 
 
@@ -57,17 +65,18 @@ if __name__ == "__main__":
     #tr= get_data('training')
     rl=get_data('real_game')
     
-    #print(df.head())
+    print(rl.head())
 
     #PLOT REWARD DIFF
     #plot_reward_difference(tr)
+    plot_reward_difference(rl)
 
     #PLOT Q DIFF
     #plot_Q_diff(tr)
 
    
 
-    rl.columns = ["Round", "Doc", "Reward"]
+    #rl.columns = ["Round", "Doc", "Reward"]
     # print(rl)
 
     r=get_total_doc_rewards(rl)

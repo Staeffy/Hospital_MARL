@@ -1,5 +1,5 @@
-from agent import Doctor
-from environment import Hospital_simple as hosp
+from agent import Doctor, Doctor_complex
+from environment import Hospital_simple, Hospital_complex
 import os 
 import random 
 from helpers import store_data
@@ -8,32 +8,37 @@ from helpers import load_policy
 
 if __name__ == "__main__":
 
-    Patients = ["ANNA", "BELA", "FARIN","ROD"]
-    rewards = [1, 5, 5, 1]  
+    Patients =	{
+        "A": ["t1", "t2","t3"],
+        "B": ["t3","t4","t1"]
+    } 
+
+    rewards={
+        't1':5,
+        't2':1,
+        't3':5,
+        't4':1
+    }
 
 
-    hosp=hosp(Patients, rewards)
+
+    hosp=Hospital_complex(Patients, rewards)
     #print("current patients treated", state)
     #print (hosp.treat_patient('ANNA'))
 
-    Doc1 = Doctor(hosp)
-    Doc2=Doctor(hosp)
+    Doc1 =Doctor_complex(hosp)
+    Doc2=Doctor_complex(hosp)
 
     Doc1.policy=load_policy('policy_doc1')
     print(Doc1.policy)
 
     Doc2.policy=load_policy('policy_doc2')
     print(Doc2.policy)
-    # with open("policy_doc1.txt", "r")  as d_doc1:
-
-    #      = d_doc1
-    #     print(Doc1.policy)
-
-    # with open("policy_doc2.txt", "r")  as d_doc2:
-
-    #     Doc1.policy = d_doc2
-      
-   
+    
+    try:
+        os.remove("real_game.csv") 
+    except:
+        print("old game file does not exist")
     
     #PLAY WITH LEARNT POLICY 
     Rounds=20
@@ -43,8 +48,10 @@ if __name__ == "__main__":
        # print("round",t)
 
         state1=()
-        hosp.patient_list=["ANNA", "BELA", "FARIN","ROD"]
-
+        hosp.patient_list=  Patients =	{
+        "A": ["t1", "t2","t3"],
+        "B": ["t3","t4","t1"]
+        } 
         #randomly decide which doc starts moving 
         current_player_idx = random.choice([0,1])
     
