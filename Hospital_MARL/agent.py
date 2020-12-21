@@ -9,7 +9,6 @@ import numpy as np
 import random 
 from helpers import max_dict
 import collections
-
 import ipdb
 
 class Doctor:
@@ -182,7 +181,7 @@ class Doctor_complex:
     """[Doctors perform actions in their environment, which is why they need to get the environment as paramenter]
     """
 
-    def __init__(self,env,skill,  eps=0.01, alpha=0.8):
+    def __init__(self,env,skill,payoff,  eps=0.01, alpha=0.8):
         """Initialize the doctor to be able to perform actions -> treat patients.
         While performing actions, the doctor updates his self.Q and collects the corresponding self.payoff and finally reaches the final self.policy
 
@@ -197,11 +196,12 @@ class Doctor_complex:
         #self.state = env.treated_patients
         self.env=env
         self.gamma=0.9
-        self.payoff=[]
+        self.reward_sum=[]
         self.biggest_change=0  #this change corresponds to the change of the Q value which is updated
         self.policy={}
         self.skill=skill
         self.help_requested=False
+        self.payoff=payoff
 
 
     def initialize_Q(self):
@@ -288,8 +288,8 @@ class Doctor_complex:
         a,ran = self.random_action(a,s,eps=0.5/t) 
 
     
-        r = self.env.reward(a)
-        self.payoff.append(r)
+        r = self.payoff.calc_reward(a)
+        self.reward_sum.append(r)
         #print("patient List",Patient_list)
 
         s2 = self.env.treat_patient(a,s)

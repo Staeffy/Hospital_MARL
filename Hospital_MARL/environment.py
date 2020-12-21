@@ -145,7 +145,7 @@ class Hospital_complex:
 
     def __init__(self, patient_list, reward_list):
         self.patient_list_orig = copy.deepcopy(patient_list)
-        self.patient_list = patient_list
+        self.patient_stats = patient_list
         self.treated_patients = ()
         self.reward_per_patient=reward_list
         #self.winner = None
@@ -158,7 +158,7 @@ class Hospital_complex:
         #print("finished treatments to determine missing treatments:", finished_treatments)
         #print("type of state", finished_treatments)
         finished_treatments= dict(finished_treatments)
-        needed_treatments = self.patient_list
+        needed_treatments = self.patient_stats
 
         todo_treatments = {}
 
@@ -186,7 +186,7 @@ class Hospital_complex:
             if any (actions[keys]):
                 
                 #check if doctor has the skill to perform the action 
-                if actions[keys][0] in skill['skill']:
+                if actions[keys][0] in skill:
                     new[keys]=actions[keys][0]
 
         #print("for state {} the available actions are {}".format(state,new))
@@ -198,11 +198,18 @@ class Hospital_complex:
         #print("getting reward for patient", patient_treatment)
         if any(patient_treatment):
             patient = patient_treatment[0]
-            if patient in self.patient_list:
+            if patient in self.patient_stats:
                 treatment=patient_treatment[1]
-                reward=self.reward_per_patient[str(treatment)]
+
+                urgency=self.reward_per_patient[treatment]['urgency']
+                duration= self.reward_per_patient[treatment]['duration']
+
+                reward=1/(urgency+duration)
                 #print("Reward is {}".format(reward))
                 return reward
+            else:
+                print("patient unknown")
+                return 0
         else: 
             #print("No reward for doing nothing")
             return 0
@@ -235,7 +242,7 @@ class Hospital_complex:
 
             #print("Patient {} is about to get treatment {}".format(patient,current_treatment))
             #delete patient from available options
-            del (self.patient_list[patient]['treatments'][0])
+            del (self.patient_stats[patient]['treatments'][0])
             #print("new list of available patients is {}".format(self.patient_list))
 
             formatted_patient_list=transform_dict_to_tuple(state)
@@ -254,12 +261,12 @@ class Hospital_complex:
 
     def all_possible_states(self):
             
-        patients = self.patient_list.keys()
+        patients = self.patient_stats.keys()
         #REIHENFOLGE PATIENTEN
         Q = []
         # For every patient 
         for patient in patients: 
-            treatments = (self.patient_list[patient]['treatments'])
+            treatments = (self.patient_stats[patient]['treatments'])
             patient_treatment = []
             patient_treatment_list = []
             #patient_treatment_list.append((patient,patient_treatment[:]))
