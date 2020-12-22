@@ -37,7 +37,7 @@ if __name__ == "__main__":
         print("old game file does not exist")
     
     #PLAY WITH LEARNT POLICY 
-    Rounds=20
+    Rounds=1
 
     for r in range(Rounds):
        
@@ -55,13 +55,13 @@ if __name__ == "__main__":
         while hosp.game_over(state1):
             #it=0
             if current_player_idx == 0: 
-                #print("Doc 1 turn")
+                print("Doc 1 turn")
                 current_player=Doc1
                 #it+=1
 
             else:
                 current_player=Doc2
-                #print("Doc 2 turn")
+                print("Doc 2 turn")
                 
             re,state1=current_player.use_policy(state1)
             #print(state1)
@@ -70,7 +70,11 @@ if __name__ == "__main__":
             current_player_idx = (current_player_idx + 1)%2
 
         #print("final state is", state1)
+    print("-------- PATIENT STATS ------")
+    print(Doc_1_payoff.patient_stats)
 
+    print("--------DOC STATS ------")
+    print(Doc_2_payoff.doc_info)
 
 
 

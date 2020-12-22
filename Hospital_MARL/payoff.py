@@ -25,21 +25,24 @@ class Doc_Payoff():
 
             urgency=self.treatment_stats[treatment]['urgency']
             duration= self.treatment_stats[treatment]['duration']
-            print("doc history for reward",self.patient_stats[patient])
-            
+            #print("doc history for reward",self.patient_stats[patient])
+
             doc_history=self.patient_stats[patient]['history']
             doc_specialty=self.doc_info[self.doc]['specialty']
             
             if self.doc in doc_history:
                 knows_doc=True
+                self.patient_stats[patient]['satisfaction']+=1
             else:
                 knows_doc=False 
         
             if treatment in doc_specialty:
                 specialty=True
+                self.doc_info[self.doc]['satisfaction']+=1
             else:
                 specialty=False 
 
+            print("does Patient {} know Doc {} ? {} ".format(patient, self.doc, knows_doc))
 
             reward=1/(self.w_u*urgency+self.w_d*duration+self.w_k*knows_doc+self.w_s*specialty)
             #print("Reward is {}".format(reward))
@@ -50,40 +53,10 @@ class Doc_Payoff():
             return 0
 
 
+    def update_satisfaction(self,patient_treatment):
 
-Patients = {
-    "A":    {'treatments': ["t1", "t2"],
-                'history': 'Doc1'},
-    "B":    {'treatments': ["t1", "t2", "t1"],
-                'history:': None
-                }
-}
-
-
-treatment_stats ={
-    't1':{
-        'urgency': 1,
-        'duration': 10
-    },
-    't2':{
-        'urgency': 1,
-        'duration': 10
-    }
-}
-
-doc_stats={
-    'doc1':{
-        'skills':['t1','t2'],
-        'specialty':'t2'
-    },
-    'doc2':{
-        'skills':['t1'],
-        'specialty':'t1'
-    }
-}
+        patient = patient_treatment[0]
+        treatment=patient_treatment[1]
 
 
 
-t=Doc_Payoff(treatment_stats,doc_stats,'doc2',Patients)
-rew=t.calc_reward(('A','t1'))
-print (rew)
