@@ -361,7 +361,7 @@ class Doctor_complex:
         
         a = self.policy[state]
         new_state=self.env.treat_patient(a,state)
-        r=self.env.reward(a)
+        r=self.payoff.calc_reward(a)
         #print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
 
         return r,new_state
