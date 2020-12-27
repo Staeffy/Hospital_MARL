@@ -16,12 +16,15 @@ class Doc_Payoff():
         self.patient_stats=patient_stats #treatments to do , history of doc
 
     
-    def calc_reward(self,patient_treatment):
+    def calc_reward(self,action):
 
-        if any(patient_treatment):
-            patient = patient_treatment[0]
+        
+
+
+        try:
+            patient = action[0]
             #check if patient is in patient list 
-            treatment=patient_treatment[1]
+            treatment=action[1]
 
             urgency=self.treatment_stats[treatment]['urgency']
             duration= self.treatment_stats[treatment]['duration']
@@ -42,21 +45,19 @@ class Doc_Payoff():
             else:
                 specialty=False 
 
-            print("does Patient {} know Doc {} ? {} ".format(patient, self.doc, knows_doc))
 
             reward=1/(self.w_u*urgency+self.w_d*duration+self.w_k*knows_doc+self.w_s*specialty)
             #print("Reward is {}".format(reward))
             return reward
-            print("patient unknown")
-        else: 
-            #print("No reward for doing nothing")a
+        except: 
+            #print("No reward for", action )
             return 0
 
 
-    def update_satisfaction(self,patient_treatment):
+    def update_satisfaction(self,action):
 
-        patient = patient_treatment[0]
-        treatment=patient_treatment[1]
+        patient = action[0]
+        treatment=action[1]
 
 
 

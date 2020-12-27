@@ -8,8 +8,12 @@ def show_policies(policy):
     Args:
         policy (dict): The action to choose for every possible state
   """
+  print(policy)
+  try:
+    od = collections.OrderedDict(sorted(policy.items()))
 
-  od = collections.OrderedDict(sorted(policy.items()))
+  except: 
+    od = policy.keys()
   for keys in od:
       v=policy[keys]
       if v !='nothing':

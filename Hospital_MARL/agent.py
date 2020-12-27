@@ -124,11 +124,9 @@ class Doctor:
         a2, max_q_s2a2 = max_dict(Q[s2])
 
         #print("checking new values for a2,s2",a2, max_q_s2a2 )
-        save = Q[s][a]
         Q[s][a] = Q[s][a] + self.alpha*(r + self.gamma * max_q_s2a2 - Q[s][a])
         
-        #ipdb.set_trace()
-        self.alpha*(r + self.gamma * max_q_s2a2 - Q[s][a])
+
 
         self.biggest_change = max(self.biggest_change, np.abs(old_qsa - Q[s][a]))
         
@@ -181,7 +179,7 @@ class Doctor_complex:
     """[Doctors perform actions in their environment, which is why they need to get the environment as paramenter]
     """
 
-    def __init__(self,env,skill,payoff,  eps=0.01, alpha=0.8):
+    def __init__(self,env,skill,payoff, doc_info,  eps=0.01, alpha=0.8):
         """Initialize the doctor to be able to perform actions -> treat patients.
         While performing actions, the doctor updates his self.Q and collects the corresponding self.payoff and finally reaches the final self.policy
 
@@ -200,30 +198,32 @@ class Doctor_complex:
         self.biggest_change=0  #this change corresponds to the change of the Q value which is updated
         self.policy={}
         self.skill=skill
+        self.doc_info=doc_info
         self.help_requested=False
         self.payoff=payoff
 
 
-    def initialize_Q(self):
-        """Initialize all  Q(s,a) state, action pairs with 0
-        """
+    # def initialize_Q(self):
+    #     """Initialize all  Q(s,a) state, action pairs with 0
+    #     """
     
-        states = self.env.all_possible_states()
-        for s in states:
-        #print(s)
-            state=list(s)
-            #print(state)
-            self.Q[s] = {}        
-            possible_actions = self.env.available_actions(state,self.skill) 
-            if any(possible_actions):
-                for a in possible_actions:
-                    patient = a
-                    treatments= possible_actions[a]
-                    a=(patient,treatments)
-                    #print("for state {} the available actions are {}".format(state,a))
-                    self.Q[s][a] = 0
-            else: 
-                self.Q[s][()] = 0
+    #     states = self.env.all_possible_states(self.doc_info)
+    #     for s in states:
+    #     #print(s)
+    #         state=list(s)
+    #         #print(state)
+    #         self.Q[s] = {}        
+    #         possible_actions = self.env.available_actions_for_init(state,self.doc_info) 
+    #         #print("for state {} the actions are {}".format(state,possible_actions))
+    #         if possible_actions != None:
+    #             for a in possible_actions:
+    #                 # patient = a
+    #                 # treatments= possible_actions[a]
+    #                 # a=(patient,treatments)
+    #                 #print("for state {} the available actions are {}".format(state,a))
+    #                 self.Q[s][a] = 0
+    #         else: 
+    #             self.Q[s][()] = 0
    
     def random_action(self,a,state,eps):
         """performs a random action based on the epsilon-greedy approach
@@ -251,8 +251,10 @@ class Doctor_complex:
         else:
             if any (available_actions):
                 action_list= list(available_actions)
-                random =np.random.choice(action_list)
-                return (random,available_actions[random]),1
+                rnd_indices = np.random.choice(len(action_list))
+                random_data = action_list[rnd_indices]
+
+                return random_data,1
  
             else:
                 print("no actions possible")
@@ -281,6 +283,25 @@ class Doctor_complex:
         Q=self.Q
         s=state
 
+        try: 
+            Q[s]
+        except KeyError:
+            self.Q[s] = {}        
+            possible_actions = self.env.available_actions(state,self.skill)
+            #print("for state {} the actions are {}".format(state,possible_actions))
+            if any(possible_actions):
+                for a in possible_actions:
+                    #print("for state {} the available actions are {}".format(state,a))
+                    self.Q[s][a] = 0
+            else: 
+                self.Q[s][()] = 0
+
+        possible_actions = self.env.available_actions(state,self.skill)
+        #print("possible actions for state ", possible_actions, state)
+        for i in possible_actions:
+            if i not in Q[s]:
+                Q[s][i]=0
+
         # choose an action based on epsilon-greedy strategy
         a, _ = max_dict(Q[s])
 
@@ -292,33 +313,51 @@ class Doctor_complex:
         self.reward_sum.append(r)
         #print("patient List",Patient_list)
 
+        
         s2 = self.env.treat_patient(a,s)
+        
 
         a2=self.env.available_actions(s2,self.skill)
         #print("treated patient/s {} so far. Choosing patient {} to treat next, getting reward {} now the new state is {} and my available actions are {}".format(s,a,r,s2,a2))
 
         # update Q(s,a) AS we experience the episode
-        try:
-            old_qsa = Q[s][a]
-        except:
-            print("cant update old_qsa with state: {} and action {}".format(s,a))
-            
-        
+    
+        old_qsa = Q[s][a]
 
+    
         #print("old Q(s,a)",old_qsa)
         # the difference between SARSA and Q-Learning is with Q-Learning
         # we will use this max[a']{ Q(s',a')} in our update
         # even if we do not end up taking this action in the next step
+        try: 
+            Q[s2]
+        except KeyError:
+            self.Q[s2] = {}        
+            possible_actions = self.env.available_actions(s2,self.skill)
+            #print("for state {} the actions are {}".format(state,possible_actions))
+            if any(possible_actions):
+                for a in possible_actions:
+                    # patient = a
+                    # treatments= possible_actions[a]
+                    # a=(patient,treatments)
+                    #print("for state {} the available actions are {}".format(state,a))
+                    self.Q[s2][a] = 0
+            else: 
+                self.Q[s2][()] = 0
+
         a2, max_q_s2a2 = max_dict(Q[s2])
 
         #print("checking new values for a2,s2",a2, max_q_s2a2 )
-        save = Q[s][a]
+        try: 
+            Q[s][a]
+        except KeyError:
+            Q[s][a]=0
+            #print('new Q', Q[s])
+
         Q[s][a] = Q[s][a] + self.alpha*(r + self.gamma * max_q_s2a2 - Q[s][a])
         #print (save , self.alpha , ( r , self.gamma , max_q_s2a2 , save))
         #print(Q[s][a])
 
-        #ipdb.set_trace()
-        self.alpha*(r + self.gamma * max_q_s2a2 - Q[s][a])
 
         self.biggest_change = max(self.biggest_change, np.abs(old_qsa - Q[s][a]))
         
