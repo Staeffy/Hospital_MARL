@@ -179,7 +179,7 @@ class Doctor_complex:
     """[Doctors perform actions in their environment, which is why they need to get the environment as paramenter]
     """
 
-    def __init__(self,env,skill,payoff, doc_info,  eps=0.01, alpha=0.8):
+    def __init__(self,env,skill,payoff, doc_info,  eps=0.01, alpha=0.5):
         """Initialize the doctor to be able to perform actions -> treat patients.
         While performing actions, the doctor updates his self.Q and collects the corresponding self.payoff and finally reaches the final self.policy
 
@@ -257,7 +257,7 @@ class Doctor_complex:
                 return random_data,1
  
             else:
-                print("no actions possible")
+                #print("no actions possible")
                 return (),1
                 
            
@@ -302,14 +302,14 @@ class Doctor_complex:
             if i not in Q[s]:
                 Q[s][i]=0
 
+
         # choose an action based on epsilon-greedy strategy
         a, _ = max_dict(Q[s])
-
         #print("action determined out of max_dict",a, s)
         a,ran = self.random_action(a,s,eps=0.5/t) 
 
     
-        r = self.payoff.calc_reward(a)
+        r = self.payoff.calc_reward(a,possible_actions)
         self.reward_sum.append(r)
         #print("patient List",Patient_list)
 
@@ -336,12 +336,12 @@ class Doctor_complex:
             possible_actions = self.env.available_actions(s2,self.skill)
             #print("for state {} the actions are {}".format(state,possible_actions))
             if any(possible_actions):
-                for a in possible_actions:
+                for action in possible_actions:
                     # patient = a
                     # treatments= possible_actions[a]
                     # a=(patient,treatments)
                     #print("for state {} the available actions are {}".format(state,a))
-                    self.Q[s2][a] = 0
+                    self.Q[s2][action] = 0
             else: 
                 self.Q[s2][()] = 0
 
@@ -397,10 +397,20 @@ class Doctor_complex:
         Returns:
             int, tuple: reward and action taken 
         """
-        
+        available_options = self.env.available_actions(state,self.skill)
+        available_options=dict(available_options)
+
         a = self.policy[state]
         new_state=self.env.treat_patient(a,state)
-        r=self.payoff.calc_reward(a)
+        r=self.payoff.calc_reward(a,state)
         #print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
 
-        return r,new_state
+        helping=0
+
+        if ("help" in available_options.keys()) and (a[0] !='help'):
+            helping=-1
+
+        if ("help" in available_options.keys()) and (a[0] =='help'):
+            helping=1
+
+        return r,new_state, helping

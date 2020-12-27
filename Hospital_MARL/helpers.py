@@ -31,18 +31,20 @@ def max_dict(d):
   Returns:
       [tuple]: [Returns the argmax (key) and max (value) from the dict]
   """
-  max_key = ()
-  max_val = 0
-  for k, v in d.items():
-    if v > max_val:
-      max_val = v
-      max_key = k
+#   max_key = ()
+#   max_val = 0
+#   for k, v in d.items():
+#     if v > max_val:
+#       max_val = v
+#       max_key = k
     
-    else: 
-        max_val =0
-        max_key = k
+#     else: 
+#         #max_val =0
+#         max_key = k
+  max_key=max(d, key=d.get)
+  max_val=d[max_key]
   
-  #print("in dict {} the max value is {} with key {}".format(d,max_val, max_key))
+  print("in dict {} the max value is {} with key {}".format(d,max_val, max_key))
   return max_key, max_val
 
 

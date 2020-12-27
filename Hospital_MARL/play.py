@@ -14,22 +14,20 @@ if __name__ == "__main__":
  
 
 
-    hosp=Hospital_complex(Patients, treatment_stats)
-    #print("current patients treated", state)
-    #print (hosp.treat_patient('ANNA'))
-
+    hosp = Hospital_complex(Patients, treatment_stats)
+    
     Doc_1_payoff=Doc_Payoff(treatment_stats,doc_stats,'doc1',Patients)
     Doc_2_payoff=Doc_Payoff(treatment_stats,doc_stats,'doc2',Patients)
 
-    Doc1 = Doctor_complex(hosp, doc_stats['doc1']['skills'],Doc_1_payoff)
-    Doc2 = Doctor_complex(hosp, doc_stats['doc2']['skills'],Doc_2_payoff)
+    Doc1 = Doctor_complex(hosp, doc_stats['doc1']['skills'],Doc_1_payoff, doc_stats)
+    Doc2 = Doctor_complex(hosp, doc_stats['doc2']['skills'],Doc_2_payoff, doc_stats)
 
 
     Doc1.policy=load_policy('policy_doc1')
     #print(Doc1.policy)
 
     Doc2.policy=load_policy('policy_doc2')
-    #print(Doc2.policy)
+    print(Doc2.policy)
     
     try:
         os.remove("real_game.csv") 
@@ -37,7 +35,7 @@ if __name__ == "__main__":
         print("old game file does not exist")
     
     #PLAY WITH LEARNT POLICY 
-    Rounds=1
+    Rounds=10
 
     for r in range(Rounds):
        
@@ -63,9 +61,9 @@ if __name__ == "__main__":
                 current_player=Doc2
                 print("Doc 2 turn")
                 
-            re,state1=current_player.use_policy(state1)
+            re,state1,helping=current_player.use_policy(state1)
             #print(state1)
-            data=[r,current_player_idx,re]
+            data=[r,current_player_idx,re, helping]
             store_data(data,'real_game')  
             current_player_idx = (current_player_idx + 1)%2
 

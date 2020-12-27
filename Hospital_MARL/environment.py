@@ -190,7 +190,7 @@ class Hospital_complex:
 
         actions=self.determine_missing_treatments(state)
         #print("patient list {} for state {} ".format(actions,state))
-    #print("patient list {} for state {} ".format(actions,state))
+        #print("patient list {} for state {} ".format(actions,state))
 
             
         #print("patient list {} for state {} ".format(actions,state))
@@ -250,14 +250,14 @@ class Hospital_complex:
         return tuple(new)
 
     def treat_patient(self,action,state):
-    #print("currently {} patients have been treated, patient {} will get treated".format(state,action))
+        #print("currently {} patients have been treated, patient {} will get treated".format(state,action))
 
 
         if any(action):
             state = transform_tuple_to_dict(state)
             action_opt=action[0]
 
-            if action_opt==('Ask for help' or 'postpone'):
+            if action_opt==('Ask for help'):
                 #print('about to help')
                 state[action[0]]=[action[1]]
                 patient=0
@@ -285,6 +285,7 @@ class Hospital_complex:
                 del (self.patient_stats[patient]['treatments'][0])
 
             formatted_state=transform_dict_to_tuple(state)
+            #print('new state', formatted_state)
             return formatted_state
             
         else:
