@@ -1,6 +1,8 @@
 """ This module contains the agents, i.e. doctors, that interact with the environment ,i.e. the hospital. 
     They are modeled as simple Q-Learning agents which first need to learn a policy which they can later on use. 
-
+    As described in the readme, the simple version chooses patients without restrictions, the complex doctor chooses patients based on 
+    skills he has and further has the ability to ask for help if he is unable to perform an action himself. 
+    If one doctor asked for help, another doctor which has the skill can decide whether to help or not. 
 """
 
 
@@ -176,11 +178,12 @@ class Doctor:
 
 
 class Doctor_complex:
-    """[Doctors perform actions in their environment, which is why they need to get the environment as paramenter]
+    """Doctors perform actions in their environment, the actions they take depend on their skills and they receive a payoff for it. 
     """
 
-    def __init__(self,env,skill,payoff, doc_info,  eps=0.01, alpha=0.5):
-        """Initialize the doctor to be able to perform actions -> treat patients.
+
+    def __init__(self,env,skill,payoff, eps=0.01, alpha=0.5):
+        """Initialize the doctor to be able to perform actions (treat patients / ask for help / help) based on his skills.
         While performing actions, the doctor updates his self.Q and collects the corresponding self.payoff and finally reaches the final self.policy
 
         Args:
@@ -189,66 +192,39 @@ class Doctor_complex:
             alpha (float, optional): Learning rate alpha which is used for the Q-function. Defaults to 0.5.
         """
         self.eps = eps # probability of choosing random action instead of greedy
-        self.alpha = alpha 
-        self.Q = {}
-        #self.state = env.treated_patients
-        self.env=env
-        self.gamma=0.9
-        self.reward_sum=[]
-        self.biggest_change=0  #this change corresponds to the change of the Q value which is updated
-        self.policy={}
-        self.skill=skill
-        self.doc_info=doc_info
-        self.help_requested=False
-        self.payoff=payoff
+        self.alpha = alpha # learning-rate 
+        self.gamma=0.9  #discount factor 
+        self.Q = {}             #Q-table filled during training 
+        self.policy={}          # retrieved when training is finished 
+        self.biggest_change=0  #this change corresponds to the change of the Q value which is updated for evaluation
 
 
-    # def initialize_Q(self):
-    #     """Initialize all  Q(s,a) state, action pairs with 0
-    #     """
-    
-    #     states = self.env.all_possible_states(self.doc_info)
-    #     for s in states:
-    #     #print(s)
-    #         state=list(s)
-    #         #print(state)
-    #         self.Q[s] = {}        
-    #         possible_actions = self.env.available_actions_for_init(state,self.doc_info) 
-    #         #print("for state {} the actions are {}".format(state,possible_actions))
-    #         if possible_actions != None:
-    #             for a in possible_actions:
-    #                 # patient = a
-    #                 # treatments= possible_actions[a]
-    #                 # a=(patient,treatments)
-    #                 #print("for state {} the available actions are {}".format(state,a))
-    #                 self.Q[s][a] = 0
-    #         else: 
-    #             self.Q[s][()] = 0
+        self.env=env  # the hospital the doctor is working in 
+        self.skill=skill # the skills the doctor has to filter treatments/actions he can perform 
+
+        self.payoff=payoff  # payoff function to calculate the rewards for his actions 
+        self.reward_sum=[]  # sum of all rewards collected 
+
    
     def random_action(self,a,state,eps):
-        """performs a random action based on the epsilon-greedy approach
+        """performs a random action based on the epsilon-decreasing approach
 
         Args:
-            a (tuple): Action i.e. patient and treatment to be done -> (Patient, Treatment)
-            state (tuple): The current state i.e. patients, treatments that have been treated already 
+            a (tuple): Action i.e. patient and treatment to be done -> (Patient, Treatment) or ('Action', (Patient, Treatment)
+            state (tuple): The current state i.e. previous patients, treatments, help-requests 
             eps (epsilon): Epsilon value 
 
         Returns:
-            sting, binary: return the action chosen and whether it was random 1 or not 0 
+            list, binary: return the action chosen and whether it was random 1 or not 0 
         """
         p = np.random.random()
         available_actions=self.env.available_actions(state,self.skill)
        
-
-
-        #print("available actions are ", available_actions)
         if p < (1 - eps):
-            #print("taking the action as passed in the function",a)
-            #if a == ():
-                #print("cant take this action", a)
-
+            #in most of the cases it will return the action that was given
             return a,0
         else:
+            #explore through taking random actions 
             if any (available_actions):
                 action_list= list(available_actions)
                 rnd_indices = np.random.choice(len(action_list))
@@ -260,75 +236,64 @@ class Doctor_complex:
                 #print("no actions possible")
                 return (),1
                 
-           
-            #print("random generator on, these are the available actions",action_list)
-            #print("taking a random choice of available actions",(random,available_actions[random]) )
-            
-        
-
-    def reset_state(self):
-        self.state = []
+    
 
     def choose_action(self,state,t):
-        """Doctor chooses patient to treat based on Q-learning 
+        """Doctor chooses action to take based on Q-learning 
+            actions possible depend on the state and skill of the doctor 
 
         Args:
-            state (tuple): Tuple including patients that have been treated already 
+            state (tuple): Tuple including patients that have been treated already and whether it was asked for help 
             t (float): Factor to decrease epsilon over time
 
         Returns:
-            s2,a,r,ran: For log purposes we return: The new state s2, the patient (action) that was chosen, the reward r received for the patient and whether it was a random action ran or not 
+            s2,a,r,ran: For log purposes we return: The new state s2, the action that was chosen, the reward r received for the action and whether it was a random action ran or not 
         """
       
         Q=self.Q
         s=state
 
+        #Creating Q-Table through experience. 
+        #The Q-Table is set up as dictionary of dictionaries consisting of states as keys with respective actions as values. 
+        #Initially all actions get 0 as value 
+        #Layout example: 
+        #Q={
+        #   state1:{action1:0
+        #          action2:0}, 
+        #   state2:{action3:0,
+        #           action1:0}  
+        # }
         try: 
             Q[s]
         except KeyError:
             self.Q[s] = {}        
             possible_actions = self.env.available_actions(state,self.skill)
-            #print("for state {} the actions are {}".format(state,possible_actions))
             if any(possible_actions):
                 for a in possible_actions:
-                    #print("for state {} the available actions are {}".format(state,a))
                     self.Q[s][a] = 0
             else: 
                 self.Q[s][()] = 0
 
-        possible_actions = self.env.available_actions(state,self.skill)
-        #print("possible actions for state ", possible_actions, state)
-        for i in possible_actions:
-            if i not in Q[s]:
-                Q[s][i]=0
-
 
         # choose an action based on epsilon-greedy strategy
         a, _ = max_dict(Q[s])
-        #print("action determined out of max_dict",a, s)
         a,ran = self.random_action(a,s,eps=0.5/t) 
 
-    
+        #possible actions needed to adjust rewards based on helping others or not 
+        possible_actions = self.env.available_actions(state,self.skill)
+        #get reward for chosen action 
         r = self.payoff.calc_reward(a,possible_actions)
+        #update reward counter
         self.reward_sum.append(r)
-        #print("patient List",Patient_list)
 
         
-        s2 = self.env.treat_patient(a,s)
         
-
-        a2=self.env.available_actions(s2,self.skill)
-        #print("treated patient/s {} so far. Choosing patient {} to treat next, getting reward {} now the new state is {} and my available actions are {}".format(s,a,r,s2,a2))
-
-        # update Q(s,a) AS we experience the episode
-    
+        # update Q(s,a) AS the episode is being experienced
         old_qsa = Q[s][a]
 
-    
-        #print("old Q(s,a)",old_qsa)
-        # the difference between SARSA and Q-Learning is with Q-Learning
-        # we will use this max[a']{ Q(s',a')} in our update
-        # even if we do not end up taking this action in the next step
+        #get new state s2 based on chosen action 
+        s2 = self.env.take_action(a,s)
+        #same as previous, check if next state is tracked already in Q-table, if not -> update
         try: 
             Q[s2]
         except KeyError:
@@ -337,31 +302,25 @@ class Doctor_complex:
             #print("for state {} the actions are {}".format(state,possible_actions))
             if any(possible_actions):
                 for action in possible_actions:
-                    # patient = a
-                    # treatments= possible_actions[a]
-                    # a=(patient,treatments)
-                    #print("for state {} the available actions are {}".format(state,a))
                     self.Q[s2][action] = 0
             else: 
                 self.Q[s2][()] = 0
 
+
+        # max[a']{ Q(s',a')} needed for Q-function 
         a2, max_q_s2a2 = max_dict(Q[s2])
-
-        #print("checking new values for a2,s2",a2, max_q_s2a2 )
-        try: 
-            Q[s][a]
-        except KeyError:
-            Q[s][a]=0
-            #print('new Q', Q[s])
-
+        
+        #################
+        # Q - FUNCTION #
+        ################
+        #
+        # New Q(s,a) = Q(s,a) + alpha [ R(s,a) + gamma(maxQ'(s',a')) - Q(s,a)]
+        #
         Q[s][a] = Q[s][a] + self.alpha*(r + self.gamma * max_q_s2a2 - Q[s][a])
-        #print (save , self.alpha , ( r , self.gamma , max_q_s2a2 , save))
-        #print(Q[s][a])
-
-
+    
+        #for logging 
         self.biggest_change = max(self.biggest_change, np.abs(old_qsa - Q[s][a]))
         
-        #print("new state",s2)
         return s2,a,r,ran
 
     def get_policy(self,Q):
@@ -375,7 +334,6 @@ class Doctor_complex:
         """
 
         states = Q.keys()
-        #print("Available states",states)
         self.policy = {}
         V = {}
         for s in states:
@@ -385,7 +343,6 @@ class Doctor_complex:
         
         return self.policy
 
-    #def ask_for_help():
 
 
     def use_policy(self,state):
@@ -395,7 +352,7 @@ class Doctor_complex:
             state (tuple): Current status of treated patients 
 
         Returns:
-            int, tuple: reward and action taken 
+            int, tuple, int: reward,  action taken, and whether the agent helped or not (1 could help but did not, 0 neutral, -1 could help but did not)
         """
         available_options = self.env.available_actions(state,self.skill)
         available_options=dict(available_options)

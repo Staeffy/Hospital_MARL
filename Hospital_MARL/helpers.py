@@ -2,13 +2,12 @@ import collections
 import csv
 import pickle
 
-def show_policies(policy):
-  """formatter for the policies 
+def show_policies(policy:dict):
+  """formatter to print the policies """
 
-    Args:
-        policy (dict): The action to choose for every possible state
-  """
-  print(policy)
+  
+  print('####################### LEARNT POLICY ###########################')
+  print('STATE----------------------------------------------------> ACTION')
   try:
     od = collections.OrderedDict(sorted(policy.items()))
 
@@ -18,43 +17,22 @@ def show_policies(policy):
       v=policy[keys]
       if v !='nothing':
 
-          print (" {} treated ----------->  {} next".format(keys,v))
+          print(f" {keys} treated ----------->  {v} next")
           print("")
 
 
-def max_dict(d):
-  """Loop through dict and get max value and key
+def max_dict(d:dict):
+  """Loop through dict and get max value and key"""
 
-  Args:
-      d ([dict]): [Dictionary to find the max value for ]
-
-  Returns:
-      [tuple]: [Returns the argmax (key) and max (value) from the dict]
-  """
-#   max_key = ()
-#   max_val = 0
-#   for k, v in d.items():
-#     if v > max_val:
-#       max_val = v
-#       max_key = k
-    
-#     else: 
-#         #max_val =0
-#         max_key = k
   max_key=max(d, key=d.get)
   max_val=d[max_key]
   
-  print("in dict {} the max value is {} with key {}".format(d,max_val, max_key))
+  #print(f"in dict {d} the max value is {max_val} with key {max_key}")
   return max_key, max_val
 
 
-def store_data(data,name):
-  """Appends rows in a file 
-
-  Args:
-      data (list): [The data to be written in rows]
-      name (string): [The name of the file]
-  """
+def store_data(data:list,name:str):
+  """Appends rows to file in current folder """
 
   row=data
 
@@ -64,41 +42,26 @@ def store_data(data,name):
 
 
 
-def save_policy(data, name ):
-  """Writes a pickl dump file of data
-
-  Args:
-      policy (dict): data that should be dumped
-      name (string): name of the file
-  """
+def save_policy(policy:dict, name:str):
+  """Stores a pickl file of data in policy folder"""
 
   with open('policy/'+ name + '.pkl', 'wb') as f:
-      pickle.dump(data, f, pickle.HIGHEST_PROTOCOL)
+      pickle.dump(policy, f, pickle.HIGHEST_PROTOCOL)
 
-def load_policy(name ):
-  """loads pickl file 
 
-  Args:
-      name (string): name of the file 
-
-  Returns:
-      [object]: [the file to be loaded]
+def load_policy(name:str ) -> object:
+  """loads pickl file from policy folder 
   """
+
   with open('policy/' + name + '.pkl', 'rb') as f:
       return pickle.load(f)
 
     
-
-
-
-
-def transform_dict_to_tuple(data):
+def transform_dict_to_tuple(data:dict) -> tuple:
 
     if type(data)==dict:
-        #print("transforming dict {} into tuple".format(data))
         new_format=[]
         for item in data.keys():
-            #new_format.append(item)
             values=data[item]
             values=tuple(values)
             formatting= (item, values)
@@ -106,23 +69,20 @@ def transform_dict_to_tuple(data):
 
         return(tuple(new_format))
     else:
-        #print("Can't transform {} of type {} to tuple".format(data, type(data)))
+        #print(f"Can't transform {data} of type {type(data)} to tuple")
         return data
 
 
-def transform_tuple_to_dict(data):
+def transform_tuple_to_dict(data:tuple) -> dict:
     
     new_format={}
     if type(data)==tuple:
-        #print("transforming tuple {} into dict".format(data))
-
         data = dict(data)
         for keys in data.keys():
             dict_values=data[keys]
             dict_values=list(dict_values)
             new_format[keys]=dict_values
-        #print("new dict is {}".format(new_format))
+
         return new_format
     else: 
-        #print("data of type {} was not transformed into dict".format(type(data)))
         return data

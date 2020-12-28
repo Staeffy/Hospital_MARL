@@ -1,7 +1,14 @@
 """ The environment for the agents i.e. different versions of a hospital.
-    The state is modeled as patients that need to be treated and patients that have been treated already 
-    The actions that can be taken are treating patients. 
+    The state is modeled as patients that need to be treated and patients that have been treated already. 
+    The actions that can be taken are treating patients.
+    - Only one action can be done at a time 
 
+
+    The complex version restricts the sequence of treatments so that only the first treatments of a patient can be chosen. 
+        * determine_missing_treatments : Check which treatments are left to do 
+        * available_actions: Check which actions the doctor can take based on his skills (treat patient, ask for help, help )
+        * take_action: When doctor chose an action -> update state accordingly
+        * game_over: Check if the game is over i.e. no treatments are left
 """
 
 
@@ -76,7 +83,7 @@ class Hospital_simple():
             state (tuple): Patients that have been treated already
 
         Returns:
-            [tuple]: [New state after patient was treated]
+            [tuple]: [possible_actions state after patient was treated]
         """
         #print("currently {} patients have been treated".format(patients_treated))
         current_state=list(state)
@@ -88,7 +95,7 @@ class Hospital_simple():
             #delete patient from available options
             del self.patient_list[index]
             #add treated patient to current state i.e. treated patients 
-            # print("new list of available patients is {}".format(list_available_patients))
+            # print("possible_actions list of available patients is {}".format(list_available_patients))
 
             current_state.append(patient)
             #current_state=tuple(current_state)
@@ -142,28 +149,36 @@ class Hospital_simple():
 
 
 class Hospital_complex:
+    """Provides patients that need to be treated and updates the state if a doctor chooses an action 
+    """
 
-    def __init__(self, patient_list, reward_list):
-        self.patient_list_orig = copy.deepcopy(patient_list)
+    def __init__(self, patient_list):
+        """Initial hospital set up
+
+        Args:
+            patient_list (dict): Includes information about patients, treatments, their urgency, skills required, and doctor history 
+        """
         self.patient_stats = patient_list
-        self.treated_patients = ()
-        self.reward_per_patient=reward_list
-        #self.winner = None
-        #self.num_states = len(self.all_possible_states())
+        self.treated_patients = ()   #stores the patients that have been treated already 
 
 
-    # determine missing treatments 
+
     def determine_missing_treatments(self,finished_treatments):
-        #convert to dict 
-        #print("finished treatments to determine missing treatments:", finished_treatments)
-        #print("type of state", finished_treatments)
+        """Checks which treatments are still left to do by comparing the state with the patient list
+
+        Args:
+            finished_treatments (tuple): Current state including which treatments are finished already 
+
+        Returns:
+            [dict]: Patients as keys with treatment that can be done as value 
+        """
+
         finished_treatments= dict(finished_treatments)
         needed_treatments = self.patient_stats
-        #print('current patient list', needed_treatments)
         todo_treatments = {}
 
         for patient in needed_treatments.keys():
-            #print(patient)
+
             if patient in finished_treatments.keys():
                 # Some treatments applied already
                 patient_todo_treatments = []
@@ -183,82 +198,117 @@ class Hospital_complex:
                 filter_available_treatments.append((patients,todo_treatments[patients][0]))
         
         
+        # EXAMPLE: 
+        # available_treatments={'Patient1': 'Treatment',
+        #                       'Patient2': 'Treatment'}
+        #
+
         return dict(filter_available_treatments)
           
     def available_actions(self, state, skill):
+        """Based on current state and doctors skills, determines possible actions for the doctor.
+            If the doctor has the skill and no one asked for help, he can directly perform the treatment.
+            If the doctor does not have the skill for a treatment available, he has to ask for help.
+            If someone asked for help for a treatment the doctor has the skill for, he can offer help.
+
+        Args:
+            state (tuple): Current state including patients,  treatments, help-requests 
+            skill (list): The doctors skill matching the treatments to be done
+
+        Returns:
+            tuple: ('Action', ('Patient', 'Treatment')) All possible_actions for the doctor given the state and skill 
+        """
         
 
-        actions=self.determine_missing_treatments(state)
-        #print("patient list {} for state {} ".format(actions,state))
-        #print("patient list {} for state {} ".format(actions,state))
+        available_actions=self.determine_missing_treatments(state)
+        
+        #filtered actions 
+        possible_actions=[]
 
-            
-        #print("patient list {} for state {} ".format(actions,state))
+        if any (available_actions):
 
-        new=[]
-        if any (actions):
+            #out of available actions, find those that match skill 
+            treatments_matching_skill=[(key,value) for key, value in available_actions.items() if any (item in value for item in skill)]
 
-            treatments_matching_skill=[(key,value) for key, value in actions.items() if any (item in value for item in skill)]
-            treatments_help_needed=[(key,value) for key, value in actions.items() if not any (item in value for item in skill)]
+            #out of available actions, find those that don't match skill 
+            treatments_help_needed=[(key,value) for key, value in available_actions.items() if not any (item in value for item in skill)]
 
-            #print(treatments_matching_skill)
-            #print(treatments_help_needed)
-
+            #transform state to dictionary for convenience 
             state = transform_tuple_to_dict(state)
-            #print(state)
             
+            #find treatments that someone asked for help for 
             if "Ask for help" in state.keys():
-            
                 asked_for_help=[value for key, value in state.items() if 'Ask for help' in key]
-                #print('Someone is aleady asking for help', asked_for_help)
             else: 
                 asked_for_help=[]
-                #print('no one is asking for help yet')
 
+
+            # For treatments matching doctors skill the possible actions are: 
+            #   1.  Help, if someone requested help 
+            #   2.  Perform treatment directly, if no one asked for help for it 
 
             for item in treatments_matching_skill:
-                #print("check to help or do standalone", item, asked_for_help)
+                #all treatments that someone asked for help for and match doctors skills 
                 can_help=[i for i in asked_for_help if item in i]
                 
                 if any(asked_for_help):
+                    #all items that match skill but no one asked for help for 
                     treat_direct=[item for i in asked_for_help if item not in i]
                 else: 
+                    #if no one asked for help, all treatments matching skills can be performed directly 
                     treat_direct=treatments_matching_skill
-                    
-                for item in can_help:
-                    #print('able help with treatment {}'.format(item))
-                    new.append(('help',item[0]))
-                    #new.append(('postpone',item))
-
-                #print('treat direct', treat_direct)
-                for item in treat_direct:
-                    new.append(item)
-
                 
+                #1. 
+                for item in can_help:
+                    possible_actions.append(('help',item[0]))
+
+                #2. 
+                for item in treat_direct:
+                    possible_actions.append(item)
+
+           # Doctors can only request help, if the help for this treatment was not requested already   
             for item in treatments_help_needed:
-                #print('need help with {}'.format(item))
+                
                 if any(asked_for_help):
                     need_help=[i for i in asked_for_help if item not in i]
                     for i in need_help:
-                    #print('asking for help for {}'.format(item))
-                        new.append(('Ask for help',i[0]))  
+                        possible_actions.append(('Ask for help',i[0]))  
                 else: 
-                    new.append(('Ask for help',item)) 
+                    possible_actions.append(('Ask for help',item)) 
 
+        #
+        # EXAMPLE: 
+        # With specific action: 
+        # ((        'help', ('A',       't2')),
+        # ( 'Ask for help', ('A',       't1')),)
+        #       Request^     ^ Patient   ^ Treatment 
+        #
+        # Treat directly: 
+        # (('A', 't3'),)
 
-            #print(new)
-        return tuple(new)
+        return tuple(possible_actions)
 
-    def treat_patient(self,action,state):
-        #print("currently {} patients have been treated, patient {} will get treated".format(state,action))
+    def take_action(self,action,state):
+        """Performs action chosen by the doctor and updates state accordingly.
+            If action is 'help': remove old help request and treat patient 
+            If action is 'Ask for help': return old state including help request 
+            If action is direct treatment: remove treatment from patient list and add to state 
 
+        Args:
+            action (tuple):  ('Action', ('Patient', 'Treatment'))
+            state (tuple): Current state including patients,  treatments, help-requests 
 
+        Returns:
+            [tuple]: Updated state 
+        """
+        #if there is no action, nothing changes and old state is returned 
         if any(action):
+
+            #transforming state to dict for convenience 
             state = transform_tuple_to_dict(state)
             action_opt=action[0]
 
             if action_opt==('Ask for help'):
-                #print('about to help')
                 state[action[0]]=[action[1]]
                 patient=0
         
@@ -274,100 +324,33 @@ class Hospital_complex:
             if patient != 0:
                 if patient in state:
                     #add treatment to existing patient 
-                    #print("adding new patient {} to state{}".format(patient,state, type(state)))
                     state[patient].append(current_treatment)
                 else: 
                     #add new patient into list with first treatment
-                    #print("adding new patient {}to state{}".format(patient,state, type(state)))
                     state[patient]=[current_treatment]
 
-                #delete patient from available options
+                #delete treatment from patient list 
                 del (self.patient_stats[patient]['treatments'][0])
+                                                            #  ^  only the first index treatment is available, so its enough to know which patient 
 
+            #transform state back to tuple so that it can be stored in the Q-table as key
             formatted_state=transform_dict_to_tuple(state)
-            #print('new state', formatted_state)
             return formatted_state
             
         else:
             return state
 
-    def all_possible_states(self,doc_info):
-            
-        patients = self.patient_stats.keys()
-        #REIHENFOLGE PATIENTEN
-        Q = []
-        # For every patient 
-        for patient in patients: 
-            treatments = (self.patient_stats[patient]['treatments'])
-            patient_treatment = []
-            patient_treatment_list = []
-            #patient_treatment_list.append((patient,patient_treatment[:]))
-            # For every treatment of the patient
-            for treatment in treatments:
-                patient_treatment.append(treatment)
-                patient_treatment_list.append((patient,tuple(patient_treatment[:])))
-
-            Q.append(patient_treatment_list)
-        
-        #print(len(Q))
-        for i in Q:
-            a= Q[0]
-            b= Q[1]
-            #c= Q[2]
-        
-        test=itertools.product(a,b)
-        #test=itertools.product(a,b,c)
-
-        new_opt=[]
-        for i in test:
-            # permutation
-            #print('combi ',i)
-            permutations = itertools.permutations(i)
-            #combination
-            #print ('permu',permutations)
-            for per in permutations:
-                for L in range(0, len(per)+1):
-                    for subset in itertools.combinations(per, L):
-                        #print('per', per)
-                        #print('subset',subset)
-                        #print("possible combinations", subset)
-                        new_opt.append(subset)
-
-        #work around to remove duplicate entries
-        all_opt=list(new_opt)
-        #print("all options", all_opt)
-        short_version=set(all_opt)
-
-        #print(short_version)
-        additional_states=[]
-        for a in short_version:
-            treatments_for_state=self.available_actions_for_init(a,doc_info)
-            additional_states.append(tuple(treatments_for_state))
-
-        short_version=list(short_version)
-        combined_states=short_version+additional_states
-        #combined_states=tuple(combined_states)
-        for i in combined_states:
-            print(i)
-
-        return combined_states
-
-
 
     def game_over(self,state):
-        """Determines whether a game is over or not by checking if there are treatments left in the check_status dict
+        """Determines whether a game is over by checking if there are treatments left in the check_status dict
 
         Args:
-            state ([tuple]): State consisting of patients that have been treated already including their treatments 
+            state (tuple): State consisting of patients that have been treated already including their treatments 
         Returns:
             [Boolean]: Returns True if the game is not over yet 
         """
-
         check_status=self.determine_missing_treatments(state)
-        # status=False
-        # if any (check_status):
-        #     status=True
 
-        return any (check_status)        
+        return any(check_status)        
 
 
