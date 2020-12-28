@@ -2,12 +2,15 @@ import collections
 import csv
 import pickle
 
-def show_policies(policy:dict):
+def show_policies(policy:dict,doc:str):
   """formatter to print the policies """
 
-  
-  print('####################### LEARNT POLICY ###########################')
-  print('STATE----------------------------------------------------> ACTION')
+  print('---------------------------------------------------')
+  print(f'-                 policy for {doc}               -')
+  print('STATE -------------------------------------> ACTION')
+
+
+
   try:
     od = collections.OrderedDict(sorted(policy.items()))
 
@@ -32,11 +35,11 @@ def max_dict(d:dict):
 
 
 def store_data(data:list,name:str):
-  """Appends rows to file in current folder """
-
+  """Appends rows to file in stats folder """
+  
   row=data
 
-  with open('{}.csv'.format(name), 'a') as f: 
+  with open(f'stats/{name}.csv', 'a') as f: 
       f= csv.writer(f)
       f.writerow(row)
 
@@ -45,7 +48,7 @@ def store_data(data:list,name:str):
 def save_policy(policy:dict, name:str):
   """Stores a pickl file of data in policy folder"""
 
-  with open('policy/'+ name + '.pkl', 'wb') as f:
+  with open(f'policy/{name}.pkl', 'wb') as f:
       pickle.dump(policy, f, pickle.HIGHEST_PROTOCOL)
 
 
@@ -53,7 +56,7 @@ def load_policy(name:str ) -> object:
   """loads pickl file from policy folder 
   """
 
-  with open('policy/' + name + '.pkl', 'rb') as f:
+  with open(f'policy/{name}.pkl', 'rb') as f:
       return pickle.load(f)
 
     

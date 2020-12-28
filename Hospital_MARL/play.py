@@ -1,13 +1,21 @@
-from agent import Doctor, Doctor_complex
-from environment import Hospital_simple, Hospital_complex
+"""Script to play the allocation game based on the previously trained policies 
+"""
+#external imports 
 import os 
 import random 
-from helpers import store_data
+import copy 
 import numpy as np
-from helpers import load_policy 
+import sys
+sys.path.append('./rl_setup')
+sys.path.append('./data')
+
+#own modules 
+from agent import Doctor, Doctor_complex
+from environment import Hospital_simple, Hospital_complex
+from helpers import store_data, load_policy
 from hospData import Patients, treatment_stats, doc_stats
 from payoff import Doc_Payoff
-import copy 
+
 
 if __name__ == "__main__":
 
