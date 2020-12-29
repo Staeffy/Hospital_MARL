@@ -35,10 +35,10 @@ class Doc_Payoff():
         self.treatment_stats=treatment_stats 
         #weights for different factors 
         self.w_u=1  #urgency
-        self.w_d=0  #duration
-        self.w_k=0  #pat - doc know each other 
-        self.w_s=0  #doc = specialist 
-        self.w_h=0  #help reward
+        self.w_d=0.2  #duration
+        self.w_k=0.8  #pat - doc know each other 
+        self.w_s=0.2  #doc = specialist 
+        self.w_h=0.5  #help reward
         
         
         self.doc_info=doc_info

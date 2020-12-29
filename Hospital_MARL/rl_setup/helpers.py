@@ -6,9 +6,9 @@ def show_policies(policy:dict,doc:str):
   """formatter to print the policies """
 
   print('---------------------------------------------------')
-  print(f'-                 policy for {doc}               -')
-  print('STATE -------------------------------------> ACTION')
-
+  print(f'#################  policy for {doc} ################')
+  print('# FOR STATE --------------------------> ACTION IS #')
+  print("")
 
 
   try:
@@ -18,8 +18,11 @@ def show_policies(policy:dict,doc:str):
     od = policy.keys()
   for keys in od:
       v=policy[keys]
-      if v !='nothing':
-
+      if v !=():
+          if any(keys) == False:
+            keys='no one yet'
+          else: 
+            keys=set(keys)
           print(f" {keys} treated ----------->  {v} next")
           print("")
 

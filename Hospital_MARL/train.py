@@ -7,10 +7,11 @@ import os
 import random
 import copy 
 import sys
-sys.path.append('./rl_setup')
-sys.path.append('./data')
+
 
 #own modules
+sys.path.append('./rl_setup')
+sys.path.append('./data')
 from agent import Doctor, Doctor_complex
 from environment import Hospital_simple, Hospital_complex
 from helpers import store_data, save_policy, show_policies
@@ -57,7 +58,7 @@ if __name__ == "__main__":
         pass
 
     #set number of rounds to be played
-    Rounds = 1000
+    Rounds = 10000
     # t is used as epsilon-decreasing value 
     t = 1.0
     print("")
@@ -105,9 +106,9 @@ if __name__ == "__main__":
             current_player_idx = (current_player_idx + 1) % 2
          
 
-    print('---------------------------------------------------')
-    print("                 FINISHED LEARNING                 ")
-    print('---------------------------------------------------')
+    print("")
+    print("---------------- FINISHED TRAINING ----------------")
+
     #print(f'Q- table for Doc1 is {Doc1.Q}')
 
     #Retrieve, show and store policies for each doc 
