@@ -1,4 +1,6 @@
+"""helper to plot data of training and real game 
 
+"""
 import numpy as np
 import matplotlib.pyplot as plt 
 import seaborn as sns
@@ -23,8 +25,9 @@ def plot_reward_difference(data):
     df = data.groupby(['Round', 'Doc']).sum()['Reward']
     print(df)
     df=df.unstack()
+    print(df)
+
     df=abs(df[0]-df[1])
-    #print(df[12500:17000])
     
     plt.plot(df.values) 
     plt.title('Reward difference of doc 1 and 2')
@@ -62,13 +65,13 @@ def plot_random_ratio(data):
 if __name__ == "__main__":
     
 
-    #tr= get_data('training')
+    tr= get_data('training')
     rl=get_data('real_game')
     
-    print(rl.head())
+    #print(rl.head())
 
     #PLOT REWARD DIFF
-    #plot_reward_difference(tr)
+    plot_reward_difference(tr)
     plot_reward_difference(rl)
 
     #PLOT Q DIFF
