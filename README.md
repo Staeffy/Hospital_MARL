@@ -24,13 +24,13 @@
 + Python 3.7.5
 
 
-### *Train the Agents *
+### *Train the Agents*
 
 ```cmd
 $ cd Hospital_MARL
 $ python3 train.py
 ```
-### *Play based on trained policy *
+### *Play based on trained policy*
 
 ```cmd
 $ cd Hospital_MARL
