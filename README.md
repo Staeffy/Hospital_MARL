@@ -1,4 +1,7 @@
-# Hospital_MARL
+# Preference-based Doctor-Patient Allocation In Hospitals Using Reinforcement Learning 
+
+### Summary 
+
 
 ### Overview 
 
@@ -14,3 +17,22 @@
     ├── requirements                   
     ├── LICENSE
     └── README.md
+
+
+### Prerequisite
+
++ Python 3.7.5
+
+
+### *Train the Agents *
+
+```cmd
+$ cd Hospital_MARL
+$ python3 train.py
+```
+### *Play based on trained policy *
+
+```cmd
+$ cd Hospital_MARL
+$ python3 play.py
+```
