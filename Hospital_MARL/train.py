@@ -14,8 +14,8 @@ sys.path.append("./data")
 from agent import Doctor, Doctor_complex
 from environment import Hospital_simple, Hospital_complex
 from helpers import store_data, save_policy, show_policies
-from payoff import Doc_Payoff
-from hospData import Patients, treatment_stats, doc_stats
+from payoff import Payoff_calculator
+from hospData import patients, treatment_stats, doc_stats
 
 
 if __name__ == "__main__":
@@ -27,29 +27,29 @@ if __name__ == "__main__":
         print("            INITIALIZING SIMPLE GAME               ")
         print("---------------------------------------------------")
 
-        Patients = ["ANNA", "BELA", "FARIN", "ROD"]
+        patients = ["ANNA", "BELA", "FARIN", "ROD"]
         rewards = [1, 5, 5, 1]
-        hosp = Hospital_simple(Patients, rewards)
+        hosp = Hospital_simple(patients, rewards)
 
-        Doc1 = Doctor(hosp)
-        Doc1.initialize_Q()
-        Doc2 = Doctor(hosp)
-        Doc2.initialize_Q()
+        doc_one = Doctor(hosp)
+        doc_one.initialize_Q()
+        doc_two = Doctor(hosp)
+        doc_two.initialize_Q()
 
     if game_version == "complex":
         print("---------------------------------------------------")
         print("                INITIALIZING COMPLEX GAME          ")
         print("---------------------------------------------------")
-        hosp = Hospital_complex(Patients)
+        hosp = Hospital_complex(patients)
 
-        Doc_1_payoff = Doc_Payoff(treatment_stats, doc_stats, "doc1", Patients)
-        Doc_2_payoff = Doc_Payoff(treatment_stats, doc_stats, "doc2", Patients)
+        doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
+        doc_two_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc2", patients)
 
-        Doc1 = Doctor_complex(
-            hosp, doc_stats["doc1"]["skills"], Doc_1_payoff, doc_stats
+        doc_one = Doctor_complex(
+            hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
         )
-        Doc2 = Doctor_complex(
-            hosp, doc_stats["doc2"]["skills"], Doc_2_payoff, doc_stats
+        doc_two = Doctor_complex(
+            hosp, doc_stats["doc2"]["skills"], doc_two_payoff, doc_stats
         )
 
     try:
@@ -73,24 +73,24 @@ if __name__ == "__main__":
 
         # initial state is empty, and patient list is full
         state = ()
-        hosp.patient_stats = copy.deepcopy(Patients)
+        hosp.patient_stats = copy.deepcopy(patients)
 
         # randomly decide which doc starts moving
         current_player_idx = random.choice([0, 1])
 
         it = 0
-        Doc1.biggest_change = 0
-        Doc2.biggest_change = 0
+        doc_one.biggest_change = 0
+        doc_two.biggest_change = 0
         # print(f"--------NEXT ROUND {r} ------ " )
 
         while hosp.game_over(state):
 
             if current_player_idx == 0:
                 # print("Doc 1 turn")
-                current_player = Doc1
+                current_player = doc_one
 
             else:
-                current_player = Doc2
+                current_player = doc_two
                 # print("Doc 2 turn")
 
             # print(f"current outside state is {state}")
@@ -112,8 +112,8 @@ if __name__ == "__main__":
     # print(f'Q- table for Doc1 is {Doc1.Q}')
 
     # Retrieve, show and store policies for each doc
-    Policy_doc1 = Doc1.get_policy(Doc1.Q)
-    Policy_doc2 = Doc2.get_policy(Doc2.Q)
+    Policy_doc1 = doc_one.get_policy(doc_one.Q)
+    Policy_doc2 = doc_two.get_policy(doc_two.Q)
 
     show_policies(Policy_doc1, "doc1")
     show_policies(Policy_doc2, "doc2")

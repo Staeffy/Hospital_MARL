@@ -170,7 +170,7 @@ class Doctor_complex:
         self.env = env  # the hospital the doctor is working in
         self.skill = skill  # the skills the doctor has to filter treatments/actions he can perform
 
-        self.payoff = payoff  # payoff function to calculate the rewards for his actions
+        self.payoff_function = payoff  # payoff function to calculate the rewards for his actions
         self.reward_sum = []  # sum of all rewards collected
 
     def random_action(self, a, state, eps):
@@ -246,7 +246,7 @@ class Doctor_complex:
         # possible actions needed to adjust rewards based on helping others or not
         possible_actions = self.env.available_actions(state, self.skill)
         # get reward for chosen action
-        r = self.payoff.calc_reward(a, possible_actions)
+        r = self.payoff_function.get_payoff(a, possible_actions)
         # update reward counter
         self.reward_sum.append(r)
 
@@ -319,7 +319,7 @@ class Doctor_complex:
 
         a = self.policy[state]
         new_state = self.env.treat_patient(a, state)
-        r = self.payoff.calc_reward(a, state)
+        r = self.payoff_function.get_payoff(a, state)
         # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
 
         helping = 0

@@ -1,4 +1,4 @@
-Patients = {
+patients = {
     "A": {"treatments": ["t2"], "history": ["doc1"], "satisfaction": 0},
     "B": {"treatments": ["t3"], "history": ["doc2"], "satisfaction": 0},
 }

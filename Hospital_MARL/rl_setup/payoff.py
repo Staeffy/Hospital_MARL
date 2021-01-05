@@ -1,25 +1,25 @@
-"""Calculates the payoff R for a given action by taking patient and doctor information into consideration 
+"""Calculates the payoff R for a given action by taking patient and doctor information into consideration
 
     R = 1 / ( urgency + duration + know_each_other + speciality + help_reward )
-    
-    Urgency = Level from 1-4, 1 is most urgent 4 is least 
-    Duration = treatment time in minutes 
-    know_each_other = 0 or 1, 0 if they know each other 
-    speciality = if doctor is the specialist / has special interest in the treatment : 0 or 1, 0 if he is the specialist 
-    help_reward = 0 or 1, 1 if doctor had the opportunity to help but did not, 0 if he helped / neutral 
+
+    Urgency = Level from 1-4, 1 is most urgent 4 is least
+    Duration = treatment time in minutes
+    know_each_other = 0 or 1, 0 if they know each other
+    speciality = if doctor is the specialist / has special interest in the treatment : 0 or 1, 0 if he is
+    help_reward = 0 or 1, 1 if doctor had the opportunity to help but did not, 0 if he helped / neutral
 
     All factors have weights that can be changed within the init def
 
-    Doctor and Patient Satisfaction is updated when: 
-    1. Patient knows doc 
+    Doctor and Patient Satisfaction is updated when:
+    1. Patient knows doc
     2. Doc performs treatment that is within his specialty
-    3. Doc helps another doc 
+    3. Doc helps another doc
 """
 
 from helpers import transform_tuple_to_dict
 
 
-class Doc_Payoff:
+class Payoff_calculator:
     """Calculates the payoff R for a given action by taking patient and doctor information into consideration"""
 
     def __init__(self, treatment_stats, doc_info, which_doc, patient_stats):
@@ -44,7 +44,7 @@ class Doc_Payoff:
         self.doc = which_doc  # needed to check specialty and update satisfaction
         self.patient_stats = patient_stats  # needed to check if doc / pat know each other and update satisfaction
 
-    def calc_reward(self, action, options):
+    def get_payoff(self, action, options):
         """Main function that calculates reward
 
         Args:
