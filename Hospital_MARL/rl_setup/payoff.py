@@ -17,105 +17,102 @@
 """
 
 from helpers import transform_tuple_to_dict
-class Doc_Payoff():
-    """Calculates the payoff R for a given action by taking patient and doctor information into consideration 
 
-    """
 
-    def __init__(self,treatment_stats,doc_info,which_doc,patient_stats):
+class Doc_Payoff:
+    """Calculates the payoff R for a given action by taking patient and doctor information into consideration"""
+
+    def __init__(self, treatment_stats, doc_info, which_doc, patient_stats):
         """Initialize weights for the payoff function as well as storing doc and patient info
 
         Args:
-            treatment_stats (dict): {'treatment':{'urgency':1, 'duration':20 }} 
+            treatment_stats (dict): {'treatment':{'urgency':1, 'duration':20 }}
             doc_info (dict): {'doc_name':{'skills':['tx','ty'],'specialty':['tx'], 'satisfaction':1}}
             which_doc (str): 'doc_name'
             patient_stats (dict): {'Patient':{'treatments': ['t1'],'history':['doc1'],'satisfaction':0},
         """
 
-        self.treatment_stats=treatment_stats 
-        #weights for different factors 
-        self.w_u=1  #urgency
-        self.w_d=0.2  #duration
-        self.w_k=0.8  #pat - doc know each other 
-        self.w_s=0.2  #doc = specialist 
-        self.w_h=0.5  #help reward
-        
-        
-        self.doc_info=doc_info
-        self.doc=which_doc  #needed to check specialty and update satisfaction
-        self.patient_stats=patient_stats #needed to check if doc / pat know each other and update satisfaction 
+        self.treatment_stats = treatment_stats
+        # weights for different factors
+        self.w_u = 1  # urgency
+        self.w_d = 0.2  # duration
+        self.w_k = 0.8  # pat - doc know each other
+        self.w_s = 0.2  # doc = specialist
+        self.w_h = 0.5  # help reward
 
-    
-    def calc_reward(self,action,options):
-        """Main function that calculates reward 
+        self.doc_info = doc_info
+        self.doc = which_doc  # needed to check specialty and update satisfaction
+        self.patient_stats = patient_stats  # needed to check if doc / pat know each other and update satisfaction
+
+    def calc_reward(self, action, options):
+        """Main function that calculates reward
 
         Args:
             action (tuple): Action that the reward should be based on ('Action', ('Patient', 'Treatment'))
-            options (tuple): List of available options the doctor could have performed in the given state 
+            options (tuple): List of available options the doctor could have performed in the given state
 
         Returns:
-            [float]: Payoff for the given action 
+            [float]: Payoff for the given action
         """
-        
-        #if there is no action, no reward (0) will be returned 
+
+        # if there is no action, no reward (0) will be returned
         if any(action):
-            options=transform_tuple_to_dict(options)
-            act_opt=action[0]
-            help_reward=0
+            options = transform_tuple_to_dict(options)
+            act_opt = action[0]
+            help_reward = 0
 
-            #check if doc could have helped, but decided not to
-            if ("help" in options.keys()) and (act_opt !='help'):
-                help_reward=1
+            # check if doc could have helped, but decided not to
+            if ("help" in options.keys()) and (act_opt != "help"):
+                help_reward = 1
 
-            #update satisfaction level if doc helped
-            if act_opt=='help':
-                patient=action[1][0]
-                treatment=action[1][1]
-                self.doc_info[self.doc]['satisfaction']+=1
-            
-            elif act_opt =='Ask for help':
-                return 0 
-            
-            #direct treatments 
+            # update satisfaction level if doc helped
+            if act_opt == "help":
+                patient = action[1][0]
+                treatment = action[1][1]
+                self.doc_info[self.doc]["satisfaction"] += 1
+
+            elif act_opt == "Ask for help":
+                return 0
+
+            # direct treatments
             else:
                 patient = action[0]
-                treatment=action[1]
+                treatment = action[1]
 
+            # get factors for payoff function
+            urgency = self.treatment_stats[treatment]["urgency"]
+            duration = self.treatment_stats[treatment]["duration"]
 
-            #get factors for payoff function 
-            urgency=self.treatment_stats[treatment]['urgency']
-            duration= self.treatment_stats[treatment]['duration']
+            doc_history = self.patient_stats[patient]["history"]
+            doc_specialty = self.doc_info[self.doc]["specialty"]
 
-            doc_history=self.patient_stats[patient]['history']
-            doc_specialty=self.doc_info[self.doc]['specialty']
-            
-            #update patient satisfaction if doc is treating a patient that he has treated before 
+            # update patient satisfaction if doc is treating a patient that he has treated before
             if self.doc in doc_history:
-                knows_doc=0
-                self.patient_stats[patient]['satisfaction']+=1
+                knows_doc = 0
+                self.patient_stats[patient]["satisfaction"] += 1
             else:
-                knows_doc=1 
-        
-            #update doc satisfaction if he is performing a treatment within his specialty 
-            if treatment in doc_specialty:
-                specialty=0
-                self.doc_info[self.doc]['satisfaction']+=1
-            else:
-                specialty=1 
+                knows_doc = 1
 
+            # update doc satisfaction if he is performing a treatment within his specialty
+            if treatment in doc_specialty:
+                specialty = 0
+                self.doc_info[self.doc]["satisfaction"] += 1
+            else:
+                specialty = 1
 
             ###################
-            #Payoff function #
+            # Payoff function #
             ##################
 
-            reward=1/(self.w_u*urgency+self.w_d*duration+self.w_k*knows_doc+self.w_s*specialty+self.w_h*help_reward)
+            reward = 1 / (
+                self.w_u * urgency
+                + self.w_d * duration
+                + self.w_k * knows_doc
+                + self.w_s * specialty
+                + self.w_h * help_reward
+            )
 
-            #print(f"receiving {reward} as reward")
+            # print(f"receiving {reward} as reward")
             return reward
         else:
-            return 0 
-
-
-
-
-
+            return 0
