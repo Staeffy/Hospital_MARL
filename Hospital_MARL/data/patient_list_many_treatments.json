@@ -1,0 +1,38 @@
+{
+    "A": {
+        "treatments": [
+            "t2","t1","t2","t3","t2","t1"
+        ],
+        "history": [
+            "doc1"
+        ],
+        "satisfaction": 0
+    },
+    "B": {
+        "treatments": [
+            "t1","t1","t2","t3","t2","t1"
+        ],
+        "history": [
+            "doc2"
+        ],
+        "satisfaction": 0
+    },
+    "D": {
+        "treatments": [
+            "t2","t1","t2","t3","t2","t1"
+        ],
+        "history": [
+            "doc1"
+        ],
+        "satisfaction": 0
+    },
+    "E": {
+        "treatments": [
+            "t1","t1","t2","t3","t2","t1"
+        ],
+        "history": [
+            "doc2"
+        ],
+        "satisfaction": 0
+    }
+}

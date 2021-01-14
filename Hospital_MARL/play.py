@@ -13,26 +13,35 @@ sys.path.append("./data")
 # own modules
 from agent import Doctor, Doctor_complex
 from environment import Hospital_simple, Hospital_complex
-from helpers import store_data, load_policy
-from hospData import Patients, treatment_stats, doc_stats
-from payoff import Doc_Payoff
+from helpers import store_data, load_policy, load_json
+from payoff import Payoff_calculator
 
 
 if __name__ == "__main__":
 
-    hosp = Hospital_complex(Patients, treatment_stats)
 
-    Doc_1_payoff = Doc_Payoff(treatment_stats, doc_stats, "doc1", Patients)
-    Doc_2_payoff = Doc_Payoff(treatment_stats, doc_stats, "doc2", Patients)
+    patients = load_json('patient_list_two_treatments')
+    doc_stats = load_json('doc_stats')
+    treatment_stats = load_json('treatment_stats')
 
-    Doc1 = Doctor_complex(hosp, doc_stats["doc1"]["skills"], Doc_1_payoff, doc_stats)
-    Doc2 = Doctor_complex(hosp, doc_stats["doc2"]["skills"], Doc_2_payoff, doc_stats)
+    hosp = Hospital_complex(patients)
 
-    Doc1.policy = load_policy("policy_doc1")
+    doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
+    doc_two_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc2", patients)
+
+    doc_one = Doctor_complex(
+        hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
+    )
+    doc_two = Doctor_complex(
+        hosp, doc_stats["doc2"]["skills"], doc_two_payoff, doc_stats
+    )
+
+
+    doc_one.policy = load_policy("policy_doc1")
     # print(Doc1.policy)
 
-    Doc2.policy = load_policy("policy_doc2")
-    print(Doc2.policy)
+    doc_two.policy = load_policy("policy_doc2")
+    #print(Doc2.policy)
 
     try:
         os.remove("real_game.csv")
@@ -47,23 +56,23 @@ if __name__ == "__main__":
         print("round", r)
 
         state1 = ()
-        hosp.patient_stats = copy.deepcopy(Patients)
+        hosp.patient_stats = copy.deepcopy(patients)
         # print("current state is {} with patients to be treated {} ".format(state1, hosp.patient_list))
         # randomly decide which doc starts moving
         current_player_idx = random.choice([0, 1])
 
-        Doc1.biggest_change = 0
-        Doc2.biggest_change = 0
+        doc_one.biggest_change = 0
+        doc_two.biggest_change = 0
         # print(hosp.game_over(state1))
         while hosp.game_over(state1):
             # it=0
             if current_player_idx == 0:
                 print("Doc 1 turn")
-                current_player = Doc1
+                current_player = doc_one
                 # it+=1
 
             else:
-                current_player = Doc2
+                current_player = doc_two
                 print("Doc 2 turn")
 
             re, state1, helping = current_player.use_policy(state1)
@@ -74,7 +83,7 @@ if __name__ == "__main__":
 
         # print("final state is", state1)
     print("-------- PATIENT STATS ------")
-    print(Doc_1_payoff.patient_stats)
+    print(doc_one_payoff.patient_stats)
 
     print("--------DOC STATS ------")
-    print(Doc_2_payoff.doc_info)
+    print(doc_two_payoff.doc_info)

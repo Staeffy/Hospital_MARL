@@ -1,0 +1,4 @@
+{
+"doc1": {"skills": ["t2", "t1"], "specialty": "t1", "satisfaction": 0},
+"doc2": {"skills": ["t3", "t2"], "specialty": "t1", "satisfaction": 0}
+}

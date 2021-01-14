@@ -1,0 +1,14 @@
+{
+    "t1": {
+        "urgency": 1,
+        "duration": 10
+    },
+    "t2": {
+        "urgency": 1,
+        "duration": 10
+    },
+    "t3": {
+        "urgency": 1,
+        "duration": 10
+    }
+}

@@ -318,7 +318,7 @@ class Doctor_complex:
         available_options = dict(available_options)
 
         a = self.policy[state]
-        new_state = self.env.treat_patient(a, state)
+        new_state = self.env.take_action(a, state)
         r = self.payoff_function.get_payoff(a, state)
         # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
 

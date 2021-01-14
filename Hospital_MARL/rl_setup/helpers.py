@@ -1,7 +1,7 @@
 import collections
 import csv
 import pickle
-
+import json
 
 def show_policies(policy: dict, doc: str):
     """formatter to print the policies """
@@ -60,6 +60,12 @@ def load_policy(name: str) -> object:
     with open(f"policy/{name}.pkl", "rb") as f:
         return pickle.load(f)
 
+
+def load_json(name: str):
+
+    with open(f'data/{name}.json') as f:
+        data = json.load(f)
+    return data
 
 def transform_dict_to_tuple(data: dict) -> tuple:
 

@@ -7,15 +7,16 @@ import os
 import random
 import copy
 import sys
+import json
 
 # own modules
 sys.path.append("./rl_setup")
 sys.path.append("./data")
 from agent import Doctor, Doctor_complex
 from environment import Hospital_simple, Hospital_complex
-from helpers import store_data, save_policy, show_policies
+from helpers import store_data, save_policy, show_policies, load_json
 from payoff import Payoff_calculator
-from hospData import patients, treatment_stats, doc_stats
+#from hospData import patients, treatment_stats, doc_stats, load_json
 
 
 if __name__ == "__main__":
@@ -40,6 +41,11 @@ if __name__ == "__main__":
         print("---------------------------------------------------")
         print("                INITIALIZING COMPLEX GAME          ")
         print("---------------------------------------------------")
+
+        patients = load_json('patient_list_two_treatments')
+        doc_stats = load_json('doc_stats')
+        treatment_stats = load_json('treatment_stats')
+
         hosp = Hospital_complex(patients)
 
         doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
