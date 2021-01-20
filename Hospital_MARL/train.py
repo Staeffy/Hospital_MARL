@@ -8,7 +8,7 @@ import random
 import copy
 import sys
 import json
-
+import time 
 # own modules
 sys.path.append("./rl_setup")
 sys.path.append("./data")
@@ -71,6 +71,7 @@ if __name__ == "__main__":
     print("")
     print("-----------------STARTING TRAINING-----------------")
 
+    start=time.perf_counter()
     for r in range(Rounds):
         if r % 100 == 0:
             t += 1e-2
@@ -112,9 +113,11 @@ if __name__ == "__main__":
             # switch player
             current_player_idx = (current_player_idx + 1) % 2
 
+    stop = time.perf_counter()
+    duration=stop-start
     print("")
     print("---------------- FINISHED TRAINING ----------------")
-
+    print("Training took {:.2f} seconds".format(duration))
     # print(f'Q- table for Doc1 is {Doc1.Q}')
 
     # Retrieve, show and store policies for each doc

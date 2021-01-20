@@ -331,3 +331,57 @@ class Doctor_complex:
             helping = 1
 
         return r, new_state, helping
+
+
+
+class Doctor_random:
+    """Doctors perform actions in their environment, the actions they take depend on their skills
+    and they receive a payoff for it.
+    """
+
+    def __init__(self, env, skill, payoff, eps=0.01, alpha=0.5):
+        """Initialize the doctor to be able to perform actions (treat patients / ask for help / help) based on his skills.
+        Doctor takes random action out of available actions based on his skills.
+
+        Args:
+            env (class): Should be the hospital which the doctor is interacting with.
+
+        """
+ 
+        self.env = env  # the hospital the doctor is working in
+        self.skill = skill  # the skills the doctor has to filter treatments/actions he can perform
+
+        self.payoff_function = payoff  # payoff function to calculate the rewards for his actions
+        self.reward_sum = []  # sum of all rewards collected
+   
+    def use_policy(self, state):
+        """This function chooses and performs the random action based on the current state.
+
+        Args:
+            state (tuple): Current status of treated patients
+
+        Returns:
+            int, tuple, int: reward,  action taken, and whether the agent helped or not
+            (1 could help but did not, 0 neutral, -1 could help but did not)
+        """
+        available_options = self.env.available_actions(state, self.skill)
+
+        if any(available_options):
+            action_list = list(available_options)
+            rnd_indices = np.random.choice(len(action_list))
+            random_action = action_list[rnd_indices]
+        else:
+            random_action=()
+        new_state = self.env.take_action(random_action, state)
+        r = self.payoff_function.get_payoff(random_action, state)
+        # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
+        available_options = dict(available_options)
+        helping = 0
+
+        if ("help" in available_options.keys()) and (random_action[0] != "help"):
+            helping = -1
+
+        if ("help" in available_options.keys()) and (random_action[0] == "help"):
+            helping = 1
+
+        return r, new_state, helping

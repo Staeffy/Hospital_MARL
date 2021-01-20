@@ -11,7 +11,7 @@ sys.path.append("./rl_setup")
 sys.path.append("./data")
 
 # own modules
-from agent import Doctor, Doctor_complex
+from agent import Doctor, Doctor_complex, Doctor_random
 from environment import Hospital_simple, Hospital_complex
 from helpers import store_data, load_policy, load_json
 from payoff import Payoff_calculator
@@ -19,29 +19,34 @@ from payoff import Payoff_calculator
 
 if __name__ == "__main__":
 
-
-    patients = load_json('patient_list_two_treatments')
-    doc_stats = load_json('doc_stats')
-    treatment_stats = load_json('treatment_stats')
+    patients = load_json("patient_list_two_treatments")
+    doc_stats = load_json("doc_stats")
+    treatment_stats = load_json("treatment_stats")
 
     hosp = Hospital_complex(patients)
 
-    doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
-    doc_two_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc2", patients)
+    player_one = "random"
+    player_two = "Q_learner"
 
-    doc_one = Doctor_complex(
-        hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
-    )
-    doc_two = Doctor_complex(
-        hosp, doc_stats["doc2"]["skills"], doc_two_payoff, doc_stats
-    )
+    if player_one == "Q_learner":
+        doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
+        doc_one = Doctor_complex(
+            hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
+        )
 
+    if player_one == "random":
+        doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
+        doc_one = Doctor_random(
+            hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
+        )
+        doc_one.policy = load_policy("policy_doc1")
 
-    doc_one.policy = load_policy("policy_doc1")
-    # print(Doc1.policy)
-
-    doc_two.policy = load_policy("policy_doc2")
-    #print(Doc2.policy)
+    if player_two == "Q_learner":
+        doc_two_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc2", patients)
+        doc_two = Doctor_complex(
+            hosp, doc_stats["doc2"]["skills"], doc_two_payoff, doc_stats
+        )
+        doc_two.policy = load_policy("policy_doc2")
 
     try:
         os.remove("real_game.csv")

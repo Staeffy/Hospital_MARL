@@ -22,7 +22,7 @@ def get_data(name):
         ]
 
     if name == "real_game":
-        df.columns = ["Round", "Doc", "Reward"]
+        df.columns = ["Round", "Doc", "Reward", "helping"]
     # df.set_index('Round')
     return df
 
@@ -46,6 +46,26 @@ def plot_reward_difference(data):
     plt.ylabel("Reward difference")
     plt.show()
 
+def plot_reward_seperate(data):
+    df = data.groupby(["Round", "Doc"]).sum()["Reward"]
+    df = df.unstack()
+
+    df = abs(df[0] + df[1])
+
+    plt.plot(df.values)
+    plt.title("Accumulated Rewards of doc 1 and 2")
+    plt.xlabel("iterations")
+    plt.ylabel("Reward for iteration")
+    plt.show()
+
+def plot_reward_accumulated(data):
+    df = data.groupby(["Round", "Doc"]).sum()["Reward"]
+    df = df.unstack()
+    plt.plot(df.values)
+    plt.title("Rewards of doc 1 and 2")
+    plt.xlabel("iterations")
+    plt.ylabel("Reward for iteration")
+    plt.show()
 
 def plot_Q_diff(df):
 
@@ -85,11 +105,20 @@ if __name__ == "__main__":
     plot_reward_difference(tr)
     plot_reward_difference(rl)
 
-    # PLOT Q DIFF
-    # plot_Q_diff(tr)
+    # PLOT REWARD SEPERATE
+    plot_reward_seperate(rl)
 
-    # rl.columns = ["Round", "Doc", "Reward"]
-    # print(rl)
+    plot_reward_accumulated(rl)
+
+    plot_reward_accumulated(tr)
+
+    # PLOT Q DIFF
+    plot_Q_diff(tr)
+
+
+
+    #rl.columns = ["Round", "Doc", "Reward"]
+    print(rl)
 
     r = get_total_doc_rewards(rl)
     print(r)
