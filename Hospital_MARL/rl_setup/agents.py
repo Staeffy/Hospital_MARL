@@ -291,6 +291,7 @@ class Doctor_greedy:
         else: 
             pass        # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
         
+        r = self.payoff_function.get_payoff(best_action, state)
         new_state = self.env.take_action(best_action, state)
         available_options = dict(available_options)
         helping = 0

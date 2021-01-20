@@ -56,9 +56,6 @@ if __name__ == "__main__":
         initialized_players.append(doctor)
 
 
-
-
-
     try:
         os.remove("real_game.csv")
     except:
