@@ -6,35 +6,51 @@
 import os
 import random
 import copy
+import numpy as np
 import sys
-import json
+from numpy.random import permutation
 import time 
-# own modules
 
 sys.path.append("../")
-#sys.path.append("../data")
 from agents_simple import Doctor_Q_Learner, Doctor_greedy, Doctor_random
 from environment_simple import Hospital
-from helpers import store_data, save_policy, show_policies, load_json
+from helpers import store_data,  show_policies, load_json, load_policy, save_policy
 from payoff import Payoff_calculator
-#from hospData import patients, treatment_stats, doc_stats, load_json
 
 
 if __name__ == "__main__":
 
 
-    print("---------------------------------------------------")
-    print("            INITIALIZING SIMPLE GAME               ")
-    print("---------------------------------------------------")
-
     patients = ["ANNA", "BELA", "FARIN", "ROD"]
     rewards = [1, 5, 5, 1]
     hosp = Hospital(patients, rewards)
 
-    doc_one = Doctor_Q_Learner(hosp)
-    doc_one.initialize_Q()
-    doc_two = Doctor_Q_Learner(hosp)
-    doc_two.initialize_Q()
+    players=["Q_learner", "Q_learner"]
+    number_of_players=len(players)
+    
+    initialized_players=[]
+    initialized_names=[]
+    
+    n=0
+    for player in players:
+       
+        player_name='doc_'+str(n)+'_'+player
+        initialized_names.append(player_name)
+        n+=1
+
+        if player=="Q_learner":
+            player_name= Doctor_Q_Learner(hosp)
+            initialized_players.append(player_name)
+            player_name.initialize_Q()
+            player_name.policy=load_policy('policy_doc1')
+
+        if player =="greedy":
+            player_name = Doctor_greedy(hosp)
+            initialized_players.append(player_name)
+
+        if player =="random":
+            player_name = Doctor_random(hosp)
+            initialized_players.append(player_name)
 
     try:
         # remove old training data
@@ -58,38 +74,31 @@ if __name__ == "__main__":
 
         # initial state is empty, and patient list is full
         state = ()
-        hosp.patient_stats = copy.deepcopy(patients)
-
-        # randomly decide which doc starts moving
-        current_player_idx = random.choice([0, 1])
+        hosp.patient_list = copy.deepcopy(patients)
+    
 
         it = 0
-        doc_one.biggest_change = 0
-        doc_two.biggest_change = 0
+        #doc_one.biggest_change = 0
+        #doc_two.biggest_change = 0
         # print(f"--------NEXT ROUND {r} ------ " )
 
         while hosp.game_over(state):
 
-            if current_player_idx == 0:
-                # print("Doc 1 turn")
-                current_player = doc_one
+            for player in permutation(initialized_players):
+                
+                current_player=player
+                index=initialized_players.index(current_player)
+                name=initialized_names[index]
 
-            else:
-                current_player = doc_two
-                # print("Doc 2 turn")
+                state, a, re, ran = current_player.choose_action(state, t)
+                # print(f"doing action {a} and getting reward {re}")
 
-            # print(f"current outside state is {state}")
-            # print(f"available patients are: {hosp.patient_stats}")
-            state, a, re, ran = current_player.choose_action(state, t)
-            # print(f"doing action {a} and getting reward {re}")
-
-            bc = current_player.biggest_change
-            it += 1
-            data = [r, current_player_idx, it, a, re, bc, ran]
-            store_data(data, "training_simple")
+                bc = current_player.biggest_change
+                it += 1
+                data = [r, name, it, a, re, bc, ran]
+                store_data(data, "training_simple")
 
             # switch player
-            current_player_idx = (current_player_idx + 1) % 2
 
     stop = time.perf_counter()
     duration=stop-start
@@ -99,11 +108,12 @@ if __name__ == "__main__":
     # print(f'Q- table for Doc1 is {Doc1.Q}')
 
     # Retrieve, show and store policies for each doc
-    Policy_doc1 = doc_one.get_policy(doc_one.Q)
-    Policy_doc2 = doc_two.get_policy(doc_two.Q)
+    
+    for player in initialized_players:
+        policy=player.get_policy(player.Q)
+        index=initialized_players.index(player)
+        name=initialized_names[index]
+        
+        show_policies(policy,name)
+        save_policy(policy, name)
 
-    show_policies(Policy_doc1, "doc1")
-    show_policies(Policy_doc2, "doc2")
-
-    save_policy(Policy_doc1, "policy_doc1")
-    save_policy(Policy_doc2, "policy_doc2")

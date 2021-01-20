@@ -6,13 +6,15 @@ import random
 import copy
 import numpy as np
 import sys
+from numpy.random import permutation
+
 
 sys.path.append("./rl_setup")
 sys.path.append("./data")
 
 # own modules
-from agents import Doctor, Doctor_complex, Doctor_random, Doctor_greedy
-from environment import Hospital_simple, Hospital_complex
+from agents import  Doctor_Q_Learner, Doctor_random, Doctor_greedy
+from environment import Hospital
 from helpers import store_data, load_policy, load_json
 from payoff import Payoff_calculator
 
@@ -23,38 +25,39 @@ if __name__ == "__main__":
     doc_stats = load_json("doc_stats")
     treatment_stats = load_json("treatment_stats")
 
-    hosp = Hospital_complex(patients)
+    hosp = Hospital(patients)
 
-    player_one = "random"
-    player_two = "Q_learner"
+    players=doc_stats.keys()
+    initialized_players=[]
+    initialized_names=[]
 
-    if player_one == "Q_learner":
-        doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
-        doc_one = Doctor_complex(
-            hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
-        )
+    for player in players:
 
-    if player_one == "random":
-        doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
-        doc_one = Doctor_random(
-            hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
-        )
-        doc_one.policy = load_policy("policy_doc1")
-    
+        player_name=str(player+'_'+doc_stats[player]['strategy'])
+        initialized_names.append(player_name)
 
-    if player_one == "greedy":
-        doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
-        doc_one = Doctor_greedy(
-            hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
-        )
-        doc_one.policy = load_policy("policy_doc1")
+        player_payoff=Payoff_calculator(treatment_stats, doc_stats, player, patients)
 
-    if player_two == "Q_learner":
-        doc_two_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc2", patients)
-        doc_two = Doctor_complex(
-            hosp, doc_stats["doc2"]["skills"], doc_two_payoff, doc_stats
-        )
-        doc_two.policy = load_policy("policy_doc2")
+        if doc_stats[player]['strategy']=="Q_learner":
+            doctor= Doctor_Q_Learner(
+            hosp, doc_stats[player]["skills"], player_payoff, doc_stats
+            )
+            doctor.policy = load_policy(f"policy_{player_name}")
+
+        if doc_stats[player]['strategy'] =="Greedy":
+            doctor = Doctor_greedy(
+            hosp, doc_stats[player]["skills"], player_payoff, doc_stats
+            )
+        if doc_stats[player]['strategy'] =="Random":
+            doctor = Doctor_random(
+            hosp, doc_stats[player]["skills"], player_payoff, doc_stats
+            )
+
+        initialized_players.append(doctor)
+
+
+
+
 
     try:
         os.remove("real_game.csv")
@@ -72,31 +75,25 @@ if __name__ == "__main__":
         hosp.patient_stats = copy.deepcopy(patients)
         # print("current state is {} with patients to be treated {} ".format(state1, hosp.patient_list))
         # randomly decide which doc starts moving
-        current_player_idx = random.choice([0, 1])
 
-        doc_one.biggest_change = 0
-        doc_two.biggest_change = 0
-        # print(hosp.game_over(state1))
         while hosp.game_over(state1):
-            # it=0
-            if current_player_idx == 0:
-                print("Doc 1 turn")
-                current_player = doc_one
-                # it+=1
+                
+            for player in permutation(initialized_players):
+            
+                index=initialized_players.index(player)
+                name=initialized_names[index]
 
-            else:
-                current_player = doc_two
-                print("Doc 2 turn")
+                re, state1, helping = player.use_policy(state1)
+                # print(state1)
+                data = [r, name, re, helping]
+                store_data(data, "real_game")
 
-            re, state1, helping = current_player.use_policy(state1)
-            # print(state1)
-            data = [r, current_player_idx, re, helping]
-            store_data(data, "real_game")
-            current_player_idx = (current_player_idx + 1) % 2
+
+   
 
         # print("final state is", state1)
     print("-------- PATIENT STATS ------")
-    print(doc_one_payoff.patient_stats)
+    print(player_payoff.patient_stats)
 
     print("--------DOC STATS ------")
-    print(doc_two_payoff.doc_info)
+    print(player_payoff.doc_info)

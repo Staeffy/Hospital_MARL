@@ -9,10 +9,11 @@ import copy
 import sys
 import json
 import time 
+from numpy.random import permutation
 # own modules
 sys.path.append("./rl_setup")
 sys.path.append("./data")
-from agents import Doctor_Q_Learner
+from agents import Doctor_Q_Learner, Doctor_greedy, Doctor_random
 from environment import Hospital
 from helpers import store_data, save_policy, show_policies, load_json
 from payoff import Payoff_calculator
@@ -21,42 +22,38 @@ from payoff import Payoff_calculator
 
 if __name__ == "__main__":
 
-    game_version = "complex"
 
-    if game_version == "simple":
-        print("---------------------------------------------------")
-        print("            INITIALIZING SIMPLE GAME               ")
-        print("---------------------------------------------------")
 
-        patients = ["ANNA", "BELA", "FARIN", "ROD"]
-        rewards = [1, 5, 5, 1]
-        hosp = Hospital_simple(patients, rewards)
+    print("---------------------------------------------------")
+    print("                INITIALIZING COMPLEX GAME          ")
+    print("---------------------------------------------------")
 
-        doc_one = Doctor(hosp)
-        doc_one.initialize_Q()
-        doc_two = Doctor(hosp)
-        doc_two.initialize_Q()
+    patients = load_json('patient_list_two_treatments')
+    doc_stats = load_json('doc_stats')
+    treatment_stats = load_json('treatment_stats')
 
-    if game_version == "complex":
-        print("---------------------------------------------------")
-        print("                INITIALIZING COMPLEX GAME          ")
-        print("---------------------------------------------------")
+    hosp = Hospital(patients)
 
-        patients = load_json('patient_list_two_treatments')
-        doc_stats = load_json('doc_stats')
-        treatment_stats = load_json('treatment_stats')
+    players=doc_stats.keys()
+    initialized_players=[]
+    initialized_names=[]
 
-        hosp = Hospital(patients)
+    for player in players:
 
-        doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
-        doc_two_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc2", patients)
+        player_name=str(player+'_'+doc_stats[player]['strategy'])
+        initialized_names.append(player_name)
 
-        doc_one = Doctor_Q_Learner(
-            hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
-        )
-        doc_two = Doctor_Q_Learner(
-            hosp, doc_stats["doc2"]["skills"], doc_two_payoff, doc_stats
-        )
+        player_payoff=Payoff_calculator(treatment_stats, doc_stats, player, patients)
+
+        if doc_stats[player]['strategy']=="Q_learner":
+            player_name = Doctor_Q_Learner(
+            hosp, doc_stats[player]["skills"], player_payoff, doc_stats
+            )
+
+        initialized_players.append(player_name)
+
+    print(initialized_names)
+    print(initialized_players)
 
     try:
         # remove old training data
@@ -83,35 +80,33 @@ if __name__ == "__main__":
         hosp.patient_stats = copy.deepcopy(patients)
 
         # randomly decide which doc starts moving
-        current_player_idx = random.choice([0, 1])
 
         it = 0
-        doc_one.biggest_change = 0
-        doc_two.biggest_change = 0
+        for player in initialized_players:
+            player.biggest_change = 0
+
         # print(f"--------NEXT ROUND {r} ------ " )
 
         while hosp.game_over(state):
 
-            if current_player_idx == 0:
-                # print("Doc 1 turn")
-                current_player = doc_one
+            for player in permutation(initialized_players):
+            
+                current_player=player
+                index=initialized_players.index(current_player)
+                name=initialized_names[index]
 
-            else:
-                current_player = doc_two
-                # print("Doc 2 turn")
+                # print(f"current outside state is {state}")
+                # print(f"available patients are: {hosp.patient_stats}")
+                state, a, re, ran = current_player.choose_action(state, t)
+                # print(f"doing action {a} and getting reward {re}")
 
-            # print(f"current outside state is {state}")
-            # print(f"available patients are: {hosp.patient_stats}")
-            state, a, re, ran = current_player.choose_action(state, t)
-            # print(f"doing action {a} and getting reward {re}")
-
-            bc = current_player.biggest_change
-            it += 1
-            data = [r, current_player_idx, it, a, re, bc, ran]
-            store_data(data, "training")
+                bc = current_player.biggest_change
+                it += 1
+                data = [r, name, it, a, re, bc, ran]
+                store_data(data, "training")
 
             # switch player
-            current_player_idx = (current_player_idx + 1) % 2
+            #current_player_idx = (current_player_idx + 1) % 2
 
     stop = time.perf_counter()
     duration=stop-start
@@ -121,11 +116,12 @@ if __name__ == "__main__":
     # print(f'Q- table for Doc1 is {Doc1.Q}')
 
     # Retrieve, show and store policies for each doc
-    Policy_doc1 = doc_one.get_policy(doc_one.Q)
-    Policy_doc2 = doc_two.get_policy(doc_two.Q)
 
-    show_policies(Policy_doc1, "doc1")
-    show_policies(Policy_doc2, "doc2")
+    for player in initialized_players:
+        index=initialized_players.index(player)
+        name=initialized_names[index]
 
-    save_policy(Policy_doc1, "policy_doc1")
-    save_policy(Policy_doc2, "policy_doc2")
+        policy = player.get_policy(player.Q)
+        show_policies(policy, name)
+        save_policy(policy, f"policy_{name}")
+
