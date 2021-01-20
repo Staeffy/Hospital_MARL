@@ -6,7 +6,7 @@ import random
 import copy
 import numpy as np
 import sys
-
+from numpy.random import permutation
 
 sys.path.append("../")
 from agents_simple import Doctor_Q_Learner, Doctor_greedy, Doctor_random
@@ -22,14 +22,19 @@ if __name__ == "__main__":
     rewards = [1, 5, 5, 1]
     hosp = Hospital(patients, rewards)
 
-    players=["Q_learner", "greedy"]
+    players=["Q_learner", "Q_learner"]
     number_of_players=len(players)
     
     initialized_players=[]
+    initialized_names=[]
+    
+    n=0
     for player in players:
-        
-        player_name='doc_'+str(players.index(player))+'_'+player
        
+
+        player_name='doc_'+str(n)+'_'+player
+        initialized_names.append(player_name)
+        n+=1
 
         if player=="Q_learner":
             player_name= Doctor_Q_Learner(hosp)
@@ -43,7 +48,9 @@ if __name__ == "__main__":
         if player =="random":
             player_name = Doctor_random(hosp)
             initialized_players.append(player_name)
+       
 
+    print(initialized_names)
     print(f"these are the initialized players {initialized_players}")
 
     try:
@@ -60,27 +67,18 @@ if __name__ == "__main__":
 
         state1 = ()
         hosp.patient_list = copy.deepcopy(patients)
-        # print("current state is {} with patients to be treated {} ".format(state1, hosp.patient_list))
-        # randomly decide which doc starts moving
-        current_player_idx = random.choice(range(number_of_players))
 
-        # print(hosp.game_over(state1))
         while hosp.game_over(state1):
-            # it=0
-            if current_player_idx == 0:
-                print("Doc 1 turn")
-                current_player = initialized_players[0]
-                # it+=1
+            # randomly decide which doc starts moving
+            for player in permutation(initialized_players):
+                
+                current_player=player
+                index=initialized_players.index(current_player)
+                name=initialized_names[index]
 
-            else:
-                current_player = initialized_players[1]
-                print("Doc 2 turn")
+                re, state1 = current_player.use_policy(state1)
 
-
-            re, state1 = current_player.use_policy(state1)
-            # print(state1)
-            data = [r, current_player_idx, re]
-            store_data(data, "real_game")
-            current_player_idx = (current_player_idx + 1) % 2
+                data = [r, name, re]
+                store_data(data, "real_game")
 
 
