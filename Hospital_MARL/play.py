@@ -11,7 +11,7 @@ sys.path.append("./rl_setup")
 sys.path.append("./data")
 
 # own modules
-from agent import Doctor, Doctor_complex, Doctor_random
+from agent import Doctor, Doctor_complex, Doctor_random, Doctor_greedy
 from environment import Hospital_simple, Hospital_complex
 from helpers import store_data, load_policy, load_json
 from payoff import Payoff_calculator
@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     hosp = Hospital_complex(patients)
 
-    player_one = "random"
+    player_one = "greedy"
     player_two = "Q_learner"
 
     if player_one == "Q_learner":
@@ -37,6 +37,14 @@ if __name__ == "__main__":
     if player_one == "random":
         doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
         doc_one = Doctor_random(
+            hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
+        )
+        doc_one.policy = load_policy("policy_doc1")
+    
+
+    if player_one == "greedy":
+        doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
+        doc_one = Doctor_greedy(
             hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
         )
         doc_one.policy = load_policy("policy_doc1")
