@@ -11,7 +11,7 @@ sys.path.append("./rl_setup")
 sys.path.append("./data")
 
 # own modules
-from agent import Doctor, Doctor_complex, Doctor_random, Doctor_greedy
+from agents import Doctor, Doctor_complex, Doctor_random, Doctor_greedy
 from environment import Hospital_simple, Hospital_complex
 from helpers import store_data, load_policy, load_json
 from payoff import Payoff_calculator
@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     hosp = Hospital_complex(patients)
 
-    player_one = "greedy"
+    player_one = "random"
     player_two = "Q_learner"
 
     if player_one == "Q_learner":

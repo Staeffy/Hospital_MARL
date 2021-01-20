@@ -10,10 +10,11 @@ import sys
 import json
 import time 
 # own modules
-sys.path.append("./rl_setup")
-sys.path.append("./data")
-from agents import Doctor_Q_Learner
-from environment import Hospital
+
+sys.path.append("../")
+#sys.path.append("../data")
+from agents_simple import Doctor_Q_Learner, Doctor_greedy, Doctor_random
+from environment_simple import Hospital
 from helpers import store_data, save_policy, show_policies, load_json
 from payoff import Payoff_calculator
 #from hospData import patients, treatment_stats, doc_stats, load_json
@@ -21,42 +22,19 @@ from payoff import Payoff_calculator
 
 if __name__ == "__main__":
 
-    game_version = "complex"
 
-    if game_version == "simple":
-        print("---------------------------------------------------")
-        print("            INITIALIZING SIMPLE GAME               ")
-        print("---------------------------------------------------")
+    print("---------------------------------------------------")
+    print("            INITIALIZING SIMPLE GAME               ")
+    print("---------------------------------------------------")
 
-        patients = ["ANNA", "BELA", "FARIN", "ROD"]
-        rewards = [1, 5, 5, 1]
-        hosp = Hospital_simple(patients, rewards)
+    patients = ["ANNA", "BELA", "FARIN", "ROD"]
+    rewards = [1, 5, 5, 1]
+    hosp = Hospital(patients, rewards)
 
-        doc_one = Doctor(hosp)
-        doc_one.initialize_Q()
-        doc_two = Doctor(hosp)
-        doc_two.initialize_Q()
-
-    if game_version == "complex":
-        print("---------------------------------------------------")
-        print("                INITIALIZING COMPLEX GAME          ")
-        print("---------------------------------------------------")
-
-        patients = load_json('patient_list_two_treatments')
-        doc_stats = load_json('doc_stats')
-        treatment_stats = load_json('treatment_stats')
-
-        hosp = Hospital(patients)
-
-        doc_one_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc1", patients)
-        doc_two_payoff = Payoff_calculator(treatment_stats, doc_stats, "doc2", patients)
-
-        doc_one = Doctor_Q_Learner(
-            hosp, doc_stats["doc1"]["skills"], doc_one_payoff, doc_stats
-        )
-        doc_two = Doctor_Q_Learner(
-            hosp, doc_stats["doc2"]["skills"], doc_two_payoff, doc_stats
-        )
+    doc_one = Doctor_Q_Learner(hosp)
+    doc_one.initialize_Q()
+    doc_two = Doctor_Q_Learner(hosp)
+    doc_two.initialize_Q()
 
     try:
         # remove old training data
@@ -108,7 +86,7 @@ if __name__ == "__main__":
             bc = current_player.biggest_change
             it += 1
             data = [r, current_player_idx, it, a, re, bc, ran]
-            store_data(data, "training")
+            store_data(data, "training_simple")
 
             # switch player
             current_player_idx = (current_player_idx + 1) % 2
