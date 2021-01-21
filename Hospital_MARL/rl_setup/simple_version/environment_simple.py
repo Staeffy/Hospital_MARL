@@ -2,8 +2,10 @@ import copy
 import itertools
 import numpy as np
 import sys
+
 sys.path.append("../")
 from helpers import transform_dict_to_tuple, transform_tuple_to_dict
+
 
 class Hospital:
     """Simplest version of the hospital with a 1 dimensional patient list.

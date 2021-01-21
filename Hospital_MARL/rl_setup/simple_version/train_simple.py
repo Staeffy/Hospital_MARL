@@ -9,46 +9,45 @@ import copy
 import numpy as np
 import sys
 from numpy.random import permutation
-import time 
+import time
 
 sys.path.append("../")
 from agents_simple import Doctor_Q_Learner, Doctor_greedy, Doctor_random
 from environment_simple import Hospital
-from helpers import store_data,  show_policies, load_json, load_policy, save_policy
+from helpers import store_data, show_policies, load_json, load_policy, save_policy
 from payoff import Payoff_calculator
 
 
 if __name__ == "__main__":
 
-
     patients = ["ANNA", "BELA", "FARIN", "ROD"]
     rewards = [1, 5, 5, 1]
     hosp = Hospital(patients, rewards)
 
-    players=["Q_learner", "Q_learner"]
-    number_of_players=len(players)
-    
-    initialized_players=[]
-    initialized_names=[]
-    
-    n=0
-    for player in players:
-       
-        player_name='doc_'+str(n)+'_'+player
-        initialized_names.append(player_name)
-        n+=1
+    players = ["Q_learner", "Q_learner"]
+    number_of_players = len(players)
 
-        if player=="Q_learner":
-            player_name= Doctor_Q_Learner(hosp)
+    initialized_players = []
+    initialized_names = []
+
+    n = 0
+    for player in players:
+
+        player_name = "doc_" + str(n) + "_" + player
+        initialized_names.append(player_name)
+        n += 1
+
+        if player == "Q_learner":
+            player_name = Doctor_Q_Learner(hosp)
             initialized_players.append(player_name)
             player_name.initialize_Q()
-            player_name.policy=load_policy('policy_doc1')
+            player_name.policy = load_policy("policy_doc1")
 
-        if player =="greedy":
+        if player == "greedy":
             player_name = Doctor_greedy(hosp)
             initialized_players.append(player_name)
 
-        if player =="random":
+        if player == "random":
             player_name = Doctor_random(hosp)
             initialized_players.append(player_name)
 
@@ -65,7 +64,7 @@ if __name__ == "__main__":
     print("")
     print("-----------------STARTING TRAINING-----------------")
 
-    start=time.perf_counter()
+    start = time.perf_counter()
     for r in range(Rounds):
         if r % 100 == 0:
             t += 1e-2
@@ -75,20 +74,19 @@ if __name__ == "__main__":
         # initial state is empty, and patient list is full
         state = ()
         hosp.patient_list = copy.deepcopy(patients)
-    
 
         it = 0
-        #doc_one.biggest_change = 0
-        #doc_two.biggest_change = 0
+        # doc_one.biggest_change = 0
+        # doc_two.biggest_change = 0
         # print(f"--------NEXT ROUND {r} ------ " )
 
         while hosp.game_over(state):
 
             for player in permutation(initialized_players):
-                
-                current_player=player
-                index=initialized_players.index(current_player)
-                name=initialized_names[index]
+
+                current_player = player
+                index = initialized_players.index(current_player)
+                name = initialized_names[index]
 
                 state, a, re, ran = current_player.choose_action(state, t)
                 # print(f"doing action {a} and getting reward {re}")
@@ -101,19 +99,18 @@ if __name__ == "__main__":
             # switch player
 
     stop = time.perf_counter()
-    duration=stop-start
+    duration = stop - start
     print("")
     print("---------------- FINISHED TRAINING ----------------")
     print("Training took {:.2f} seconds".format(duration))
     # print(f'Q- table for Doc1 is {Doc1.Q}')
 
     # Retrieve, show and store policies for each doc
-    
-    for player in initialized_players:
-        policy=player.get_policy(player.Q)
-        index=initialized_players.index(player)
-        name=initialized_names[index]
-        
-        show_policies(policy,name)
-        save_policy(policy, name)
 
+    for player in initialized_players:
+        policy = player.get_policy(player.Q)
+        index = initialized_players.index(player)
+        name = initialized_names[index]
+
+        show_policies(policy, name)
+        save_policy(policy, name)

@@ -14,11 +14,13 @@ import copy
 import itertools
 import numpy as np
 from helpers import transform_dict_to_tuple, transform_tuple_to_dict
+from payoff import Payoff_calculator
+
 
 class Hospital:
     """Provides patients that need to be treated and updates the state if a doctor chooses an action"""
 
-    def __init__(self, patient_list):
+    def __init__(self, patient_list, treatment_stats, doc_stats):
         """Initial hospital set up
 
         Args:
@@ -26,7 +28,9 @@ class Hospital:
                                  skills required, and doctor history
         """
         self.patient_stats = patient_list
+        self.treatment_stats = treatment_stats
         self.treated_patients = ()  # stores the patients that have been treated already
+        self.doc_stats = doc_stats
 
     def determine_missing_treatments(self, finished_treatments):
         """Checks which treatments are still left to do by comparing the state with the patient list
@@ -95,7 +99,7 @@ class Hospital:
             treatments_matching_skill = [
                 (key, value)
                 for key, value in available_actions.items()
-                if any(item in value for item in skill)
+                if any(item in value for item in skill if item)
             ]
 
             # out of available actions, find those that don't match skill
@@ -161,7 +165,7 @@ class Hospital:
 
         return tuple(possible_actions)
 
-    def take_action(self, action, state):
+    def take_action(self, action, state, player):
         """Performs action chosen by the doctor and updates state accordingly.
             If action is 'help': remove old help request and treat patient
             If action is 'Ask for help': return old state including help request
@@ -175,11 +179,14 @@ class Hospital:
             [tuple]: Updated state
         """
         # if there is no action, nothing changes and old state is returned
+        time_for_action = 0
+        reward = 0
         if any(action):
 
             # transforming state to dict for convenience
             state = transform_tuple_to_dict(state)
             action_opt = action[0]
+            affected_player = player
 
             if action_opt == ("Ask for help"):
                 state[action[0]] = [action[1]]
@@ -188,6 +195,7 @@ class Hospital:
             elif action_opt == "help":
                 patient = action[1][0]
                 current_treatment = action[1][1]
+                affected_player = "all"
                 del state["Ask for help"]
             else:
                 patient = action[0]
@@ -199,19 +207,63 @@ class Hospital:
                     # add treatment to existing patient
                     state[patient].append(current_treatment)
                 else:
-                    # add new patient into list with first treatment
+                    # insert new patient into list with first treatment
                     state[patient] = [current_treatment]
 
                 # delete treatment from patient list
                 del self.patient_stats[patient]["treatments"][0]
-                # only the first index treatment is available, so its enough to know which patient
 
+                time_for_action = self.treatment_stats[current_treatment]["duration"]
+                self.update_stats(
+                    time_for_action, affected_player, player, patient, current_treatment
+                )
+
+                reward = self.give_reward(player, action, state)
             # transform state back to tuple so that it can be stored in the Q-table as key
             formatted_state = transform_dict_to_tuple(state)
-            return formatted_state
+            return formatted_state, reward
 
         else:
-            return state
+            return state, reward
+
+    def give_reward(self, player, action, state):
+
+        payoff_calc = Payoff_calculator(
+            self.treatment_stats, self.doc_stats, player, self.patient_stats
+        )
+
+        available_time = self.doc_stats[player]["time"]
+        available_actions = self.available_actions(
+            state, self.doc_stats[player]["skills"]
+        )
+
+        reward = payoff_calc.get_payoff(action, available_actions, available_time)
+
+        return reward
+
+    def update_stats(
+        self, time_for_action, affected_players, player, patient, current_treatment
+    ):
+
+        if affected_players == "all":
+            for doc in self.doc_stats.keys():
+                self.doc_stats[doc]["time"] -= time_for_action
+                self.doc_stats[doc]["satisfaction"] += 1
+
+        else:
+            self.doc_stats[player]["time"] -= time_for_action
+
+        doc_history = self.patient_stats[patient]["history"]
+        doc_specialty = self.doc_stats[player]["specialty"]
+
+        # update patient satisfaction if doc is treating a patient that he has treated before
+        if player in doc_history:
+            self.patient_stats[patient]["satisfaction"] += 1
+            self.doc_stats[player]["satisfaction"] += 1
+
+        if current_treatment in doc_specialty:
+            self.patient_stats[patient]["satisfaction"] += 1
+            self.doc_stats[player]["satisfaction"] += 1
 
     def game_over(self, state):
         """Determines whether a game is over by checking if there are treatments left in the check_status dict

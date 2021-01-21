@@ -11,44 +11,41 @@ from numpy.random import permutation
 sys.path.append("../")
 from agents_simple import Doctor_Q_Learner, Doctor_greedy, Doctor_random
 from environment_simple import Hospital
-from helpers import store_data,  show_policies, load_json, load_policy
+from helpers import store_data, show_policies, load_json, load_policy
 from payoff import Payoff_calculator
 
 
 if __name__ == "__main__":
 
-
     patients = ["ANNA", "BELA", "FARIN", "ROD"]
     rewards = [1, 5, 5, 1]
     hosp = Hospital(patients, rewards)
 
-    players=["Q_learner", "Q_learner"]
-    number_of_players=len(players)
-    
-    initialized_players=[]
-    initialized_names=[]
-    
-    n=0
+    players = ["Q_learner", "Q_learner"]
+    number_of_players = len(players)
+
+    initialized_players = []
+    initialized_names = []
+
+    n = 0
     for player in players:
-       
 
-        player_name='doc_'+str(n)+'_'+player
+        player_name = "doc_" + str(n) + "_" + player
         initialized_names.append(player_name)
-        n+=1
+        n += 1
 
-        if player=="Q_learner":
-            player_name= Doctor_Q_Learner(hosp)
+        if player == "Q_learner":
+            player_name = Doctor_Q_Learner(hosp)
             initialized_players.append(player_name)
-            player_name.policy=load_policy('policy_doc1')
+            player_name.policy = load_policy("policy_doc1")
 
-        if player =="greedy":
+        if player == "greedy":
             player_name = Doctor_greedy(hosp)
             initialized_players.append(player_name)
 
-        if player =="random":
+        if player == "random":
             player_name = Doctor_random(hosp)
             initialized_players.append(player_name)
-       
 
     print(initialized_names)
     print(f"these are the initialized players {initialized_players}")
@@ -71,14 +68,12 @@ if __name__ == "__main__":
         while hosp.game_over(state1):
             # randomly decide which doc starts moving
             for player in permutation(initialized_players):
-                
-                current_player=player
-                index=initialized_players.index(current_player)
-                name=initialized_names[index]
+
+                current_player = player
+                index = initialized_players.index(current_player)
+                name = initialized_names[index]
 
                 re, state1 = current_player.use_policy(state1)
 
                 data = [r, name, re]
                 store_data(data, "real_game")
-
-

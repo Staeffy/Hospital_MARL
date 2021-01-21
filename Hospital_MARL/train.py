@@ -28,11 +28,11 @@ if __name__ == "__main__":
     print("                INITIALIZING COMPLEX GAME          ")
     print("---------------------------------------------------")
 
-    patients = load_json('patient_list_two_treatments')
-    doc_stats = load_json('doc_stats')
+    patients = load_json('patient_list_single_treatment')
+    doc_stats = load_json('doc_stats_train')
     treatment_stats = load_json('treatment_stats')
 
-    hosp = Hospital(patients)
+    hosp = Hospital(patients, treatment_stats, doc_stats)
 
     players=doc_stats.keys()
     initialized_players=[]
@@ -43,14 +43,12 @@ if __name__ == "__main__":
         player_name=str(player+'_'+doc_stats[player]['strategy'])
         initialized_names.append(player_name)
 
-        player_payoff=Payoff_calculator(treatment_stats, doc_stats, player, patients)
 
         if doc_stats[player]['strategy']=="Q_learner":
             player_name = Doctor_Q_Learner(
-            hosp, doc_stats[player]["skills"], player_payoff, doc_stats
+            player, hosp, doc_stats
             )
-
-        initialized_players.append(player_name)
+            initialized_players.append(player_name)
 
     print(initialized_names)
     print(initialized_players)
@@ -62,7 +60,7 @@ if __name__ == "__main__":
         pass
 
     # set number of rounds to be played
-    Rounds = 10000
+    Rounds = 1000
     # t is used as epsilon-decreasing value
     t = 1.0
     print("")
@@ -124,4 +122,6 @@ if __name__ == "__main__":
         policy = player.get_policy(player.Q)
         show_policies(policy, name)
         save_policy(policy, f"policy_{name}")
+
+        print(f"Total payoff of player {name} is {player.reward_sum}")
 

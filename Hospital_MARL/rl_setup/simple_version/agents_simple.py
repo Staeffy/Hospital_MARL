@@ -1,8 +1,10 @@
 import numpy as np
 import random
-import sys 
+import sys
+
 sys.path.append("../")
 from helpers import max_dict
+
 
 class Doctor_Q_Learner:
     """[Doctors perform actions in their environment, which is why they need to get the environment as paramenter]"""
@@ -140,7 +142,7 @@ class Doctor_Q_Learner:
 
         return r, new_state
 
-    
+
 class Doctor_random:
     """[Doctors perform actions in their environment, which is why they need to get the environment as paramenter]"""
 
@@ -153,14 +155,13 @@ class Doctor_random:
             eps (float, optional): Epsilon value which corresponds to the exploration rate. Defaults to 0.01.
             alpha (float, optional): Learning rate alpha which is used for the Q-function. Defaults to 0.5.
         """
- 
+
         self.env = env
         self.payoff = []
         self.biggest_change = (
             0  # this change corresponds to the change of the Q value which is updated
         )
         self.policy = {}
-
 
     def use_policy(self, state):
         """This function can be used to let the agent act according to the derived policy after training
@@ -179,7 +180,7 @@ class Doctor_random:
 
         return r, new_state
 
-    
+
 class Doctor_greedy:
     """[Doctors perform actions in their environment, which is why they need to get the environment as paramenter]"""
 
@@ -200,14 +201,14 @@ class Doctor_greedy:
         """
 
         available_actions = self.env.available_actions(state)
-        best_action=()
+        best_action = ()
         if any(available_actions):
             for action in available_actions:
-                best_reward=0
+                best_reward = 0
                 r = self.env.reward(action)
                 if r > best_reward:
-                    best_reward=r
-                    best_action=action
+                    best_reward = r
+                    best_action = action
         else:
             pass
 

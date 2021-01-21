@@ -21,11 +21,11 @@ from payoff import Payoff_calculator
 
 if __name__ == "__main__":
 
-    patients = load_json("patient_list_two_treatments")
-    doc_stats = load_json("doc_stats")
+    patients = load_json("patient_list_single_treatment")
+    doc_stats = load_json("doc_stats_play")
     treatment_stats = load_json("treatment_stats")
 
-    hosp = Hospital(patients)
+    hosp = Hospital(patients, treatment_stats, doc_stats)
 
     players=doc_stats.keys()
     initialized_players=[]
@@ -36,21 +36,20 @@ if __name__ == "__main__":
         player_name=str(player+'_'+doc_stats[player]['strategy'])
         initialized_names.append(player_name)
 
-        player_payoff=Payoff_calculator(treatment_stats, doc_stats, player, patients)
 
         if doc_stats[player]['strategy']=="Q_learner":
             doctor= Doctor_Q_Learner(
-            hosp, doc_stats[player]["skills"], player_payoff, doc_stats
+            player, hosp, doc_stats
             )
             doctor.policy = load_policy(f"policy_{player_name}")
 
         if doc_stats[player]['strategy'] =="Greedy":
             doctor = Doctor_greedy(
-            hosp, doc_stats[player]["skills"], player_payoff, doc_stats
+            player, hosp, doc_stats
             )
         if doc_stats[player]['strategy'] =="Random":
             doctor = Doctor_random(
-            hosp, doc_stats[player]["skills"], player_payoff, doc_stats
+            player, hosp, doc_stats
             )
 
         initialized_players.append(doctor)
@@ -62,7 +61,7 @@ if __name__ == "__main__":
         print("old game file does not exist")
 
     # PLAY WITH LEARNT POLICY
-    Rounds = 10
+    Rounds = 1
 
     for r in range(Rounds):
 
@@ -74,23 +73,29 @@ if __name__ == "__main__":
         # randomly decide which doc starts moving
 
         while hosp.game_over(state1):
-                
+            print("------- TREATMENT ASSIGNMENT --------")   
+            n=0
             for player in permutation(initialized_players):
-            
+                n+=1
                 index=initialized_players.index(player)
                 name=initialized_names[index]
 
-                re, state1, helping = player.use_policy(state1)
+               
+                #print("satisfaction is {}")
+                re, state1, helping,action = player.use_policy(state1)
+                print(f"[{n}.] {name} DOES {action}")
                 # print(state1)
                 data = [r, name, re, helping]
                 store_data(data, "real_game")
 
 
-   
+    print("")
+    print("-------- MEDICAL STAFF STATS ------")
 
-        # print("final state is", state1)
-    print("-------- PATIENT STATS ------")
-    print(player_payoff.patient_stats)
+    for doc in doc_stats.keys():
+        print(f"Satisfaction level of {doc} is {hosp.doc_stats[doc]['satisfaction']}")
 
-    print("--------DOC STATS ------")
-    print(player_payoff.doc_info)
+    print("")
+    print("---------- PATIENT STATS ----------")
+    for patient in patients:
+        print (f"Satisfaction level of {patient} is {hosp.patient_stats[patient]['satisfaction']}")

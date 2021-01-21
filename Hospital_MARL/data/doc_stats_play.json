@@ -1,0 +1,27 @@
+{
+    "doc1": {
+        "skills": [
+            "t2",
+            "t1"
+        ],
+        "specialty": "t2",
+        "satisfaction": 0,
+        "strategy": "Q_learner",
+        "time":10,
+        "preferences":{"w_u":1, "w_d":0.2, "w_k":0.8,"w_s":0.2, "w_h":0.5},
+        "learning":{"alpha":0.3, "epsilon":0.3,"gamma":0.8}
+
+    },
+    "doc2": {
+        "skills": [
+            "t3",
+            "t2"
+        ],
+        "specialty": "t2",
+        "satisfaction": 0,
+        "strategy": "Random",
+        "time":340,
+        "preferences":{"w_u":1, "w_d":0.2, "w_k":0.8,"w_s":0.2, "w_h":0.5}
+    }
+}
+

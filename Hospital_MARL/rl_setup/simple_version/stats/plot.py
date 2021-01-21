@@ -34,11 +34,11 @@ def get_total_doc_rewards(data):
 
 def plot_reward_difference(data):
 
-    doctors= set(data['Doc'].tolist())
+    doctors = set(data["Doc"].tolist())
 
     df = data.groupby(["Round", "Doc"]).sum()["Reward"]
     df = df.unstack()
-  
+
     doctor_one = df.iloc[:, 0]
     print(doctor_one)
     doctor_two = df.iloc[:, 1]
@@ -52,6 +52,7 @@ def plot_reward_difference(data):
     plt.ylabel("Reward difference")
     plt.show()
 
+
 def plot_reward_seperate(data):
     df = data.groupby(["Round", "Doc"]).sum()["Reward"]
     df = df.unstack()
@@ -63,6 +64,7 @@ def plot_reward_seperate(data):
     plt.ylabel("Reward for iteration")
     plt.show()
 
+
 def plot_reward_accumulated(data):
     df = data.groupby(["Round", "Doc"]).sum()["Reward"]
     df = df.unstack()
@@ -71,6 +73,7 @@ def plot_reward_accumulated(data):
     plt.xlabel("iterations")
     plt.ylabel("Reward for iteration")
     plt.show()
+
 
 def plot_Q_diff(df):
 
@@ -101,13 +104,13 @@ def plot_random_ratio(data):
 
 if __name__ == "__main__":
 
-    #tr = get_data("training_simple")
+    # tr = get_data("training_simple")
     rl = get_data("real_game")
 
     print(rl.head())
 
     # PLOT REWARD DIFF
-    #plot_reward_difference(tr)
+    # plot_reward_difference(tr)
     plot_reward_difference(rl)
 
     # PLOT REWARD SEPERATE
@@ -115,14 +118,12 @@ if __name__ == "__main__":
 
     plot_reward_accumulated(rl)
 
-    #plot_reward_accumulated(tr)
+    # plot_reward_accumulated(tr)
 
     # PLOT Q DIFF
-    #plot_Q_diff(tr)
+    # plot_Q_diff(tr)
 
-
-
-    #rl.columns = ["Round", "Doc", "Reward"]
+    # rl.columns = ["Round", "Doc", "Reward"]
     print(rl)
 
     r = get_total_doc_rewards(rl)

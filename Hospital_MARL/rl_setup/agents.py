@@ -14,7 +14,7 @@ class Doctor_Q_Learner:
     and they receive a payoff for it.
     """
 
-    def __init__(self, env, skill, payoff, eps=0.01, alpha=0.5):
+    def __init__(self, name, env, doc_stats, eps=0.01, alpha=0.5):
         """Initialize the doctor to be able to perform actions (treat patients / ask for help / help) based on his skills.
         While performing actions, the doctor updates his self.Q and collects the corresponding self.payoff and finally reaches the final self.policy
 
@@ -23,18 +23,23 @@ class Doctor_Q_Learner:
             eps (float, optional): Epsilon value which corresponds to the exploration rate. Defaults to 0.01.
             alpha (float, optional): Learning rate alpha which is used for the Q-function. Defaults to 0.5.
         """
-        self.eps = eps  # probability of choosing random action instead of greedy
-        self.alpha = alpha  # learning-rate
-        self.gamma = 0.9  # discount factor
+        self.eps = doc_stats[name]["learning"][
+            "epsilon"
+        ]  # probability of choosing random action instead of greedy
+        self.alpha = doc_stats[name]["learning"]["alpha"]  # learning-rate
+        self.gamma = doc_stats[name]["learning"]["gamma"]  # discount factor
         self.Q = {}  # Q-table filled during training
         self.policy = {}  # retrieved when training is finished
         self.biggest_change = 0  # corresponds to the change of the Q value which is updated for evaluation
 
         self.env = env  # the hospital the doctor is working in
-        self.skill = skill  # the skills the doctor has to filter treatments/actions he can perform
+        self.skill = doc_stats[name][
+            "skills"
+        ]  # the skills the doctor has to filter treatments/actions he can perform
 
-        self.payoff_function = payoff  # payoff function to calculate the rewards for his actions
-        self.reward_sum = []  # sum of all rewards collected
+        self.reward_sum = 0  # sum of all rewards collected
+
+        self.name = name
 
     def random_action(self, a, state, eps):
         """performs a random action based on the epsilon-decreasing approach
@@ -71,7 +76,7 @@ class Doctor_Q_Learner:
 
         Args:
             state (tuple): Tuple including patients that have been treated already and whether it was asked for help
-            t (float): Factor to decrease epsilon over time
+            t (float): Factor to decrease epsilon over work_time
 
         Returns:
             s2,a,r,ran: For log purposes we return: The new state s2, the action that was chosen,
@@ -109,15 +114,17 @@ class Doctor_Q_Learner:
         # possible actions needed to adjust rewards based on helping others or not
         possible_actions = self.env.available_actions(state, self.skill)
         # get reward for chosen action
-        r = self.payoff_function.get_payoff(a, possible_actions)
+        # r = self.payoff_function.get_payoff(a, possible_actions, self.work_time)
+
         # update reward counter
-        self.reward_sum.append(r)
 
         # update Q(s,a) AS the episode is being experienced
         old_qsa = Q[s][a]
 
         # get new state s2 based on chosen action
-        s2 = self.env.take_action(a, s)
+        s2, r = self.env.take_action(a, s, self.name)
+        self.reward_sum += r
+
         # same as previous, check if next state is tracked already in Q-table, if not -> update
         try:
             Q[s2]
@@ -181,8 +188,7 @@ class Doctor_Q_Learner:
         available_options = dict(available_options)
 
         a = self.policy[state]
-        new_state = self.env.take_action(a, state)
-        r = self.payoff_function.get_payoff(a, state)
+        new_state, r = self.env.take_action(a, state, self.name)
         # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
 
         helping = 0
@@ -193,8 +199,7 @@ class Doctor_Q_Learner:
         if ("help" in available_options.keys()) and (a[0] == "help"):
             helping = 1
 
-        return r, new_state, helping
-
+        return r, new_state, helping, a
 
 
 class Doctor_random:
@@ -202,7 +207,7 @@ class Doctor_random:
     and they receive a payoff for it.
     """
 
-    def __init__(self, env, skill, payoff, eps=0.01, alpha=0.5):
+    def __init__(self, name, env, doc_stats):
         """Initialize the doctor to be able to perform actions (treat patients / ask for help / help) based on his skills.
         Doctor takes random action out of available actions based on his skills.
 
@@ -210,13 +215,14 @@ class Doctor_random:
             env (class): Should be the hospital which the doctor is interacting with.
 
         """
- 
-        self.env = env  # the hospital the doctor is working in
-        self.skill = skill  # the skills the doctor has to filter treatments/actions he can perform
 
-        self.payoff_function = payoff  # payoff function to calculate the rewards for his actions
+        self.env = env  # the hospital the doctor is working in
+        self.skill = doc_stats[name][
+            "skills"
+        ]  # the skills the doctor has to filter treatments/actions he can perform
+        self.name = name
         self.reward_sum = []  # sum of all rewards collected
-   
+
     def use_policy(self, state):
         """This function chooses and performs the random action based on the current state.
 
@@ -234,9 +240,9 @@ class Doctor_random:
             rnd_indices = np.random.choice(len(action_list))
             random_action = action_list[rnd_indices]
         else:
-            random_action=()
-        new_state = self.env.take_action(random_action, state)
-        r = self.payoff_function.get_payoff(random_action, state)
+            random_action = ()
+        new_state, reward = self.env.take_action(random_action, state, self.name)
+
         # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
         available_options = dict(available_options)
         helping = 0
@@ -247,7 +253,7 @@ class Doctor_random:
         if ("help" in available_options.keys()) and (random_action[0] == "help"):
             helping = 1
 
-        return r, new_state, helping
+        return reward, new_state, helping, random_action
 
 
 class Doctor_greedy:
@@ -255,7 +261,7 @@ class Doctor_greedy:
     and they receive a payoff for it.
     """
 
-    def __init__(self, env, skill, payoff, eps=0.01, alpha=0.5):
+    def __init__(self, name, env, doc_stats):
         """Initialize the doctor to be able to perform actions (treat patients / ask for help / help) based on his skills.
         Doctor takes random action out of available actions based on his skills.
 
@@ -264,11 +270,12 @@ class Doctor_greedy:
 
         """
         self.env = env  # the hospital the doctor is working in
-        self.skill = skill  # the skills the doctor has to filter treatments/actions he can perform
-
-        self.payoff_function = payoff  # payoff function to calculate the rewards for his actions
+        self.skill = doc_stats[name][
+            "skills"
+        ]  # the skills the doctor has to filter treatments/actions he can perform
+        self.name = name
         self.reward_sum = []  # sum of all rewards collected
-   
+
     def use_policy(self, state):
         """This function chooses and performs the random action based on the current state.
 
@@ -280,19 +287,19 @@ class Doctor_greedy:
             (1 could help but did not, 0 neutral, -1 could help but did not)
         """
         available_options = self.env.available_actions(state, self.skill)
-        best_action=()
+        best_action = ()
         if any(available_options):
             for action in available_options:
                 best_reward = 0
-                r = self.payoff_function.get_payoff(action, state)
+                r = self.env.give_reward(self.name, action, state)
                 if r > best_reward:
-                    best_reward=r
-                    best_action=action
-        else: 
-            pass        # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
-        
-        r = self.payoff_function.get_payoff(best_action, state)
-        new_state = self.env.take_action(best_action, state)
+                    best_reward = r
+                    best_action = action
+        else:
+            pass  # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
+
+        new_state, reward = self.env.take_action(best_action, state, self.name)
+
         available_options = dict(available_options)
         helping = 0
 
@@ -302,4 +309,4 @@ class Doctor_greedy:
         if ("help" in available_options.keys()) and (best_action[0] == "help"):
             helping = 1
 
-        return r, new_state, helping
+        return reward, new_state, helping, best_action
