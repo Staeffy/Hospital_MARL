@@ -11,15 +11,7 @@ import json
 import time
 from numpy.random import permutation
 import rl_setup
-# own modules
-# sys.path.append("./rl_setup")
-# sys.path.append("./data")
-# from agents import Doctor_Q_Learner, Doctor_greedy, Doctor_random
-# from environment import Hospital
-# from helpers import store_data, save_policy, show_policies, load_json
-# from payoff import Payoff_calculator
 
-# from hospData import patients, treatment_stats, doc_stats, load_json
 
 
 if __name__ == "__main__":
