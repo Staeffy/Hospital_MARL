@@ -1,33 +1,35 @@
 """ This module contains the agents, i.e. doctors, that interact with the environment,
-    i.e. the hospital. They are modeled as simple Q-Learning agents which first need to learn a policy which they can later on use. 
-    As described in the readme, the simple version chooses patients without restrictions, the complex doctor chooses patients based on 
-    skills he has and further has the ability to ask for help if he is unable to perform an action himself. 
-    If one doctor asked for help, another doctor which has the skill can decide whether to help or not. 
+    i.e. the hospital. For evaluation purposes, three different strategies for the doctors to choose actions
+    were implemented. 
+    - Doctor_Q_Learner : chooses actions based on Q-function
+    - Doctor_greedy: chooses action based on maximum value for the current state
+    - Doctor_random: always chooses random actions 
+
 """
 import numpy as np
 import random
-from helpers import max_dict
-
+from typing import Union
+from rl_setup import helpers
 
 class Doctor_Q_Learner:
     """Doctors perform actions in their environment, the actions they take depend on their skills
     and they receive a payoff for it.
     """
 
-    def __init__(self, name, env, doc_stats, eps=0.01, alpha=0.5):
-        """Initialize the doctor to be able to perform actions (treat patients / ask for help / help) based on his skills.
-        While performing actions, the doctor updates his self.Q and collects the corresponding self.payoff and finally reaches the final self.policy
+    def __init__(self, name: str, env: object, doc_stats: dict):
+        """Initialize the doctor to be able to perform actions (treat patients / ask for help / help) based on the skills.
+        While performing actions, the doctor updates his Q-table and collects the corresponding payoff,
+        and can derive a policy based on the Q-table.
 
         Args:
-            env (class): Should be the hospital which the doctor is interacting with.
-            eps (float, optional): Epsilon value which corresponds to the exploration rate. Defaults to 0.01.
-            alpha (float, optional): Learning rate alpha which is used for the Q-function. Defaults to 0.5.
+            name ([type]): Doctor's identity out of all available in doc_stats.
+            env ([type]): Should be the hospital which the doctor is interacting with.
+            doc_stats ([type]): Information about all doctors.
+
         """
-        self.eps = doc_stats[name]["learning"][
-            "epsilon"
-        ]  # probability of choosing random action instead of greedy
-        self.alpha = doc_stats[name]["learning"]["alpha"]  # learning-rate
-        self.gamma = doc_stats[name]["learning"]["gamma"]  # discount factor
+        self.eps = doc_stats[name]["learning"]["epsilon"]  # Exploitation rate
+        self.alpha = doc_stats[name]["learning"]["alpha"]  # Learning-rate
+        self.gamma = doc_stats[name]["learning"]["gamma"]  # Discount factor
         self.Q = {}  # Q-table filled during training
         self.policy = {}  # retrieved when training is finished
         self.biggest_change = 0  # corresponds to the change of the Q value which is updated for evaluation
@@ -41,7 +43,7 @@ class Doctor_Q_Learner:
 
         self.name = name
 
-    def random_action(self, a, state, eps):
+    def random_action(self, a: tuple, state: tuple, eps: float) :
         """performs a random action based on the epsilon-decreasing approach
 
         Args:
@@ -70,16 +72,17 @@ class Doctor_Q_Learner:
             else:
                 return (), 1
 
-    def choose_action(self, state, t):
+    def choose_action(
+        self, state: tuple, t: float) :
         """Doctor chooses action to take based on Q-learning
             actions possible depend on the state and skill of the doctor
 
         Args:
-            state (tuple): Tuple including patients that have been treated already and whether it was asked for help
-            t (float): Factor to decrease epsilon over work_time
+            state (tuple): Tuple including patients that have been treated already and whether it was asked for help.
+            t (float): Factor to decrease epsilon over time
 
         Returns:
-            s2,a,r,ran: For log purposes we return: The new state s2, the action that was chosen,
+            s2,a,r,ran: For log purposes: The new state s2, the action a that was chosen,
             the reward r received for the action and whether it was a random action ran or not
         """
 
@@ -108,21 +111,21 @@ class Doctor_Q_Learner:
                 self.Q[s][()] = 0
 
         # choose an action based on epsilon-greedy strategy
-        a, _ = max_dict(Q[s])
-        a, ran = self.random_action(a, s, eps=0.5 / t)
+        a, _ = helpers.max_dict(Q[s])
+        a, ran = self.random_action(a, s, self.eps / t)
 
         # possible actions needed to adjust rewards based on helping others or not
         possible_actions = self.env.available_actions(state, self.skill)
         # get reward for chosen action
         # r = self.payoff_function.get_payoff(a, possible_actions, self.work_time)
 
-        # update reward counter
-
         # update Q(s,a) AS the episode is being experienced
         old_qsa = Q[s][a]
 
         # get new state s2 based on chosen action
         s2, r = self.env.take_action(a, s, self.name)
+
+        # update reward counter
         self.reward_sum += r
 
         # same as previous, check if next state is tracked already in Q-table, if not -> update
@@ -139,7 +142,7 @@ class Doctor_Q_Learner:
                 self.Q[s2][()] = 0
 
         # max[a']{ Q(s',a')} needed for Q-function
-        a2, max_q_s2a2 = max_dict(Q[s2])
+        a2, max_q_s2a2 = helpers.max_dict(Q[s2])
 
         #################
         # Q - FUNCTION #
@@ -154,7 +157,7 @@ class Doctor_Q_Learner:
 
         return s2, a, r, ran
 
-    def get_policy(self, Q):
+    def get_policy(self, Q: dict) -> dict:
         """Derives the policy for the doctor based on Q
 
         Args:
@@ -168,9 +171,9 @@ class Doctor_Q_Learner:
         self.policy = {}
         V = {}
         for s in states:
-            a, max_q = max_dict(Q[s])
-            self.policy[s] = a
-            V[s] = max_q
+            action, max_q_value = helpers.max_dict(Q[s])
+            self.policy[s] = action
+            V[s] = max_q_value
 
         return self.policy
 
@@ -181,38 +184,33 @@ class Doctor_Q_Learner:
             state (tuple): Current status of treated patients
 
         Returns:
-            int, tuple, int: reward,  action taken, and whether the agent helped or not
+            int, tuple, int, tuple: reward,  new state, action taken, and whether the agent helped or not
             (1 could help but did not, 0 neutral, -1 could help but did not)
         """
         available_options = self.env.available_actions(state, self.skill)
-        available_options = dict(available_options)
 
-        a = self.policy[state]
-        new_state, r = self.env.take_action(a, state, self.name)
+        action = self.policy[state]
+        new_state, reward = self.env.take_action(action, state, self.name)
+        self.reward_sum += reward
         # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
 
-        helping = 0
+        help_behavior_point = self.env.determine_behavior(available_options, action)
 
-        if ("help" in available_options.keys()) and (a[0] != "help"):
-            helping = -1
-
-        if ("help" in available_options.keys()) and (a[0] == "help"):
-            helping = 1
-
-        return r, new_state, helping, a
+        return reward, new_state, help_behavior_point, action
 
 
 class Doctor_random:
-    """Doctors perform actions in their environment, the actions they take depend on their skills
-    and they receive a payoff for it.
+    """Doctor performs random action in the environment, depending on the skills and current state,
+    and receives a payoff for the action.
     """
 
-    def __init__(self, name, env, doc_stats):
-        """Initialize the doctor to be able to perform actions (treat patients / ask for help / help) based on his skills.
-        Doctor takes random action out of available actions based on his skills.
+    def __init__(self, name: str, env: object, doc_stats: dict):
+        """Initialize the doctor to be able to perform actions (treat patients / ask for help / help) based on the skills.
 
         Args:
-            env (class): Should be the hospital which the doctor is interacting with.
+            name ([type]): Doctor's identity out of all available in doc_stats.
+            env ([type]): Should be the hospital which the doctor is interacting with.
+            doc_stats ([type]): Information about all doctors.
 
         """
 
@@ -221,16 +219,16 @@ class Doctor_random:
             "skills"
         ]  # the skills the doctor has to filter treatments/actions he can perform
         self.name = name
-        self.reward_sum = []  # sum of all rewards collected
+        self.reward_sum = 0  # sum of all rewards collected
 
-    def use_policy(self, state):
+    def use_policy(self, state: tuple) :
         """This function chooses and performs the random action based on the current state.
 
         Args:
-            state (tuple): Current status of treated patients
+            state (tuple): Current state of the environment
 
         Returns:
-            int, tuple, int: reward,  action taken, and whether the agent helped or not
+            float, tuple, int, tuple: reward, new state, action taken, and whether the agent helped or not
             (1 could help but did not, 0 neutral, -1 could help but did not)
         """
         available_options = self.env.available_actions(state, self.skill)
@@ -241,32 +239,27 @@ class Doctor_random:
             random_action = action_list[rnd_indices]
         else:
             random_action = ()
+
         new_state, reward = self.env.take_action(random_action, state, self.name)
-
+        self.reward_sum += reward
         # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
-        available_options = dict(available_options)
-        helping = 0
+        help_behavior_point = self.env.determine_behavior(
+            available_options, random_action
+        )
 
-        if ("help" in available_options.keys()) and (random_action[0] != "help"):
-            helping = -1
-
-        if ("help" in available_options.keys()) and (random_action[0] == "help"):
-            helping = 1
-
-        return reward, new_state, helping, random_action
+        return reward, new_state, help_behavior_point, random_action
 
 
 class Doctor_greedy:
-    """Doctors perform actions in their environment, the actions they take depend on their skills
-    and they receive a payoff for it.
-    """
+    """Greedy doctor chooses always the best action within the given state, regardless of the future effect."""
 
     def __init__(self, name, env, doc_stats):
-        """Initialize the doctor to be able to perform actions (treat patients / ask for help / help) based on his skills.
-        Doctor takes random action out of available actions based on his skills.
+        """Initialize the doctor to be able to perform actions (treat patients / ask for help / help) based on the skills.
 
         Args:
-            env (class): Should be the hospital which the doctor is interacting with.
+            name ([type]): Doctor's identity out of all available in doc_stats.
+            env ([type]): Should be the hospital which the doctor is interacting with.
+            doc_stats ([type]): Information about all doctors.
 
         """
         self.env = env  # the hospital the doctor is working in
@@ -274,13 +267,14 @@ class Doctor_greedy:
             "skills"
         ]  # the skills the doctor has to filter treatments/actions he can perform
         self.name = name
-        self.reward_sum = []  # sum of all rewards collected
+        self.reward_sum = 0  # sum of all rewards collected
 
-    def use_policy(self, state):
-        """This function chooses and performs the random action based on the current state.
+    def use_policy(self, state: tuple):
+        """This function chooses and performs the greedy action based on the current state
+        by looping through the rewards that can be gained for all currently available options.
 
         Args:
-            state (tuple): Current status of treated patients
+            state (tuple): Current state of the environment
 
         Returns:
             int, tuple, int: reward,  action taken, and whether the agent helped or not
@@ -299,14 +293,10 @@ class Doctor_greedy:
             pass  # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
 
         new_state, reward = self.env.take_action(best_action, state, self.name)
+        self.reward_sum += reward
 
-        available_options = dict(available_options)
-        helping = 0
+        help_behavior_point = self.env.determine_behavior(
+            available_options, best_action
+        )
 
-        if ("help" in available_options.keys()) and (best_action[0] != "help"):
-            helping = -1
-
-        if ("help" in available_options.keys()) and (best_action[0] == "help"):
-            helping = 1
-
-        return reward, new_state, helping, best_action
+        return reward, new_state, help_behavior_point, best_action

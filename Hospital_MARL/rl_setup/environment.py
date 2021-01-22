@@ -13,9 +13,7 @@
 import copy
 import itertools
 import numpy as np
-from helpers import transform_dict_to_tuple, transform_tuple_to_dict
-from payoff import Payoff_calculator
-
+from rl_setup import helpers, payoff
 
 class Hospital:
     """Provides patients that need to be treated and updates the state if a doctor chooses an action"""
@@ -110,7 +108,7 @@ class Hospital:
             ]
 
             # transform state to dictionary for convenience
-            state = transform_tuple_to_dict(state)
+            state = helpers.transform_tuple_to_dict(state)
 
             # find treatments that someone asked for help for
             if "Ask for help" in state.keys():
@@ -184,7 +182,7 @@ class Hospital:
         if any(action):
 
             # transforming state to dict for convenience
-            state = transform_tuple_to_dict(state)
+            state = helpers.transform_tuple_to_dict(state)
             action_opt = action[0]
             affected_player = player
 
@@ -220,7 +218,7 @@ class Hospital:
 
                 reward = self.give_reward(player, action, state)
             # transform state back to tuple so that it can be stored in the Q-table as key
-            formatted_state = transform_dict_to_tuple(state)
+            formatted_state = helpers.transform_dict_to_tuple(state)
             return formatted_state, reward
 
         else:
@@ -228,7 +226,7 @@ class Hospital:
 
     def give_reward(self, player, action, state):
 
-        payoff_calc = Payoff_calculator(
+        payoff_calc = payoff.Payoff_calculator(
             self.treatment_stats, self.doc_stats, player, self.patient_stats
         )
 
@@ -264,6 +262,20 @@ class Hospital:
         if current_treatment in doc_specialty:
             self.patient_stats[patient]["satisfaction"] += 1
             self.doc_stats[player]["satisfaction"] += 1
+
+
+    def determine_behavior(self, available_actions, action_taken):
+
+        available_options = dict(available_actions)
+        helping = 0
+
+        if ("help" in available_options.keys()) and (action_taken[0] != "help"):
+            helping = -1
+
+        if ("help" in available_options.keys()) and (action_taken[0] == "help"):
+            helping = 1
+
+            return helping 
 
     def game_over(self, state):
         """Determines whether a game is over by checking if there are treatments left in the check_status dict

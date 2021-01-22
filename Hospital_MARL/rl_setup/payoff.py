@@ -16,7 +16,7 @@
     3. Doc helps another doc
 """
 
-from helpers import transform_tuple_to_dict
+from rl_setup import helpers
 
 
 class Payoff_calculator:
@@ -57,7 +57,7 @@ class Payoff_calculator:
 
         # if there is no action, no reward (0) will be returned
         if any(action):
-            options = transform_tuple_to_dict(options)
+            options = helpers.transform_tuple_to_dict(options)
             act_opt = action[0]
             help_reward = 0
 
