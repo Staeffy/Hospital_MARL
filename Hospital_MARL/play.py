@@ -8,24 +8,15 @@ import numpy as np
 import sys
 from numpy.random import permutation
 
-
-sys.path.append("./rl_setup")
-sys.path.append("./data")
-
-# own modules
-from agents import  Doctor_Q_Learner, Doctor_random, Doctor_greedy
-from environment import Hospital
-from helpers import store_data, load_policy, load_json
-from payoff import Payoff_calculator
-
+import rl_setup
 
 if __name__ == "__main__":
 
-    patients = load_json("patient_list_single_treatment")
-    doc_stats = load_json("doc_stats_play")
-    treatment_stats = load_json("treatment_stats")
+    patients = rl_setup.load_json("patient_list_single_treatment")
+    doc_stats = rl_setup.load_json("doc_stats_play")
+    treatment_stats = rl_setup.load_json("treatment_stats")
 
-    hosp = Hospital(patients, treatment_stats, doc_stats)
+    hosp = rl_setup.Hospital(patients, treatment_stats, doc_stats)
 
     players=doc_stats.keys()
     initialized_players=[]
@@ -38,17 +29,17 @@ if __name__ == "__main__":
 
 
         if doc_stats[player]['strategy']=="Q_learner":
-            doctor= Doctor_Q_Learner(
+            doctor= rl_setup.Doctor_Q_Learner(
             player, hosp, doc_stats
             )
-            doctor.policy = load_policy(f"policy_{player_name}")
+            doctor.policy = rl_setup.load_policy(f"policy_{player_name}")
 
         if doc_stats[player]['strategy'] =="Greedy":
-            doctor = Doctor_greedy(
+            doctor = rl_setup.Doctor_greedy(
             player, hosp, doc_stats
             )
         if doc_stats[player]['strategy'] =="Random":
-            doctor = Doctor_random(
+            doctor = rl_setup.Doctor_random(
             player, hosp, doc_stats
             )
 
@@ -86,7 +77,7 @@ if __name__ == "__main__":
                 print(f"[{n}.] {name} DOES {action}")
                 # print(state1)
                 data = [r, name, re, helping]
-                store_data(data, "real_game")
+                rl_setup.store_data(data, "real_game")
 
 
     print("")
