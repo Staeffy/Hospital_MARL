@@ -32,6 +32,7 @@ class Doctor_Q_Learner:
         self.gamma = doc_stats[name]["learning"]["gamma"]  # Discount factor
         self.Q = {}  # Q-table filled during training
         self.policy = {}  # retrieved when training is finished
+        self.unknown_actions=0
         self.biggest_change = 0  # corresponds to the change of the Q value which is updated for evaluation
 
         self.env = env  # the hospital the doctor is working in
@@ -102,6 +103,7 @@ class Doctor_Q_Learner:
         try:
             Q[s]
         except KeyError:
+            self.unknown_actions +=1
             self.Q[s] = {}
             possible_actions = self.env.available_actions(state, self.skill)
             if any(possible_actions):
@@ -133,6 +135,7 @@ class Doctor_Q_Learner:
             Q[s2]
         except KeyError:
             self.Q[s2] = {}
+            self.unknown_actions +=1
             possible_actions = self.env.available_actions(s2, self.skill)
             # print("for state {} the actions are {}".format(state,possible_actions))
             if any(possible_actions):
@@ -189,7 +192,15 @@ class Doctor_Q_Learner:
         """
         available_options = self.env.available_actions(state, self.skill)
 
-        action = self.policy[state]
+        try:
+            action = self.policy[state]
+        except KeyError:
+            self.unknown_actions +=1
+            action_list = list(available_options)
+            rnd_indices = np.random.choice(len(action_list))
+            action = action_list[rnd_indices]
+
+
         new_state, reward = self.env.take_action(action, state, self.name)
         self.reward_sum += reward
         # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
@@ -242,6 +253,7 @@ class Doctor_random:
 
         new_state, reward = self.env.take_action(random_action, state, self.name)
         self.reward_sum += reward
+        
         # print('current state is {} doing action {} new state is {}'.format(state,a,new_state))
         help_behavior_point = self.env.determine_behavior(
             available_options, random_action

@@ -4,11 +4,19 @@
         "duration": 10
     },
     "t2": {
-        "urgency": 1,
-        "duration": 10
+        "urgency": 2,
+        "duration": 15
     },
     "t3": {
-        "urgency": 1,
+        "urgency": 3,
+        "duration": 10
+    },
+    "t4": {
+        "urgency": 4,
+        "duration": 20
+    },
+    "t5": {
+        "urgency": 5,
         "duration": 10
     }
 }

@@ -2,7 +2,7 @@ import collections
 import csv
 import pickle
 import json
-
+import os 
 
 def show_policies(policy: dict, doc: str):
     """formatter to print the policies """
@@ -27,6 +27,52 @@ def show_policies(policy: dict, doc: str):
             print(f" {keys} treated ----------->  {v} next")
             print("")
 
+def get_pat_satisfaction(patient_stats):
+    total_sati=0
+    for pat in patient_stats.keys():
+        total_sati+=patient_stats[pat]['satisfaction']
+    
+    return total_sati
+
+def define_file_name(doc_stats, patient_stats, mode):
+
+    patients=patient_stats.keys()
+    doctors=doc_stats.keys()
+
+    amount_staff=str(len(doctors))
+    amount_pat=str(len(patients))
+
+    amount_treatments=0
+    for patient in patients:
+        amount_treatments+=len(patient_stats[patient]['treatments'])
+
+    name= mode+'_'+amount_staff+'_staff_'+amount_pat+'_pat_'+str(amount_treatments)+'_treatments'
+    return name
+
+def create_folder(path, name):
+    folder_path=path
+    folder_name=name
+
+    if folder_path=='stats':
+        folder_path = f"stats/{folder_name}"
+
+    try:
+        os.mkdir(folder_path)
+    except OSError:
+        print ("Creation of the directory %s failed" % folder_path)
+    else:
+        print ("Successfully created the directory %s " % folder_path)
+
+
+def define_folder_name(doc_stats):
+
+    doctors=doc_stats.keys()
+
+    strategies='Strategy'
+    for doc in doctors:
+        strategies+='_'+doc_stats[doc]['strategy']
+
+    return strategies
 
 def max_dict(d: dict):
     """Loop through dict and get max value and key"""
@@ -38,17 +84,17 @@ def max_dict(d: dict):
     return max_key, max_val
 
 
-def store_data(data: list, name: str):
+def store_data(data: list, name: str, folder:str):
     """Appends rows to file in stats folder """
 
     row = data
 
-    with open(f"stats/{name}.csv", "a") as f:
+    with open(f"stats/{folder}/{name}.csv", "a") as f:
         f = csv.writer(f)
         f.writerow(row)
 
 
-def save_policy(policy: dict, name: str):
+def save_policy(policy: dict, name: str, folder:str):
     """Stores a pickl file of data in policy folder"""
 
     with open(f"policy/{name}.pkl", "wb") as f:

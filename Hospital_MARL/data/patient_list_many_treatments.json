@@ -1,7 +1,7 @@
 {
     "A": {
         "treatments": [
-            "t2","t1","t2","t3","t2","t1"
+            "t2","t1","t2","t3"
         ],
         "history": [
             "doc1"
@@ -10,7 +10,7 @@
     },
     "B": {
         "treatments": [
-            "t1","t1","t2","t3","t2","t1"
+            "t1","t3","t2"
         ],
         "history": [
             "doc2"
@@ -19,7 +19,7 @@
     },
     "D": {
         "treatments": [
-            "t2","t1","t2","t3","t2","t1"
+            "t2","t4","t2","t3"
         ],
         "history": [
             "doc1"
@@ -28,10 +28,28 @@
     },
     "E": {
         "treatments": [
-            "t1","t1","t2","t3","t2","t1"
+            "t1","t1","t2"
         ],
         "history": [
             "doc2"
+        ],
+        "satisfaction": 0
+    },
+    "F": {
+        "treatments": [
+            "t4","t4","t5"
+        ],
+        "history": [
+            "doc2,doc1"
+        ],
+        "satisfaction": 0
+    },
+    "G": {
+        "treatments": [
+            "t5","t3","t1"
+        ],
+        "history": [
+            "doc2,doc1"
         ],
         "satisfaction": 0
     }

@@ -13,8 +13,10 @@
 import copy
 import itertools
 import numpy as np
+import logging
 from rl_setup import helpers, payoff
 
+log = logging.getLogger("my-logger")
 class Hospital:
     """Provides patients that need to be treated and updates the state if a doctor chooses an action"""
 
@@ -39,7 +41,7 @@ class Hospital:
         Returns:
             [dict]: Patients as keys with treatment that can be done as value
         """
-
+        log.info(f"finished treatments currently are {finished_treatments} type {type}")
         finished_treatments = dict(finished_treatments)
         needed_treatments = self.patient_stats
         todo_treatments = {}
